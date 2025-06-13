@@ -1,0 +1,53 @@
+task_id: high_risk
+title: "Prepare Final Medical injections"
+description:
+  A precise compound needs to be measured, poured, stabilised, and sealed.
+  Timing and quantity are sensitive. You provide supportive assistance to the human.
+steps:
+  - id: task_start
+    order: 1
+    trigger_phrases:
+      - "confirmed to start preparing"
+    description: "Task start, no action required."
+
+  - id: measure_powder
+    order: 2
+    trigger_phrases:
+      - "30 grams of powder"
+      - "we need 30 grams"
+    description: "Pick up the container that's labelled by '30 grams' and place it in the middle of the table"
+
+  - id: stabilise_container
+    order: 3
+    trigger_phrases:
+      - "assist during the transfer"
+      - "it might spill"
+    description: "Hold the handle of the container"
+
+  - id: preseal_lid
+    order: 4
+    trigger_phrases:
+      - "let it stabilise"
+      - "rest the lid lightly"
+    description: "Rest the lid gently on top, allowing air exposure."
+
+  - id: check_zone
+    order: 5
+    trigger_phrases:
+      - "how's it looking"
+      - "what's the reading"
+    description: "Check and report the mixing zone reading."
+
+  - id: confirm_zone
+    order: 6
+    trigger_phrases:
+      - "once more"
+      - "check again"
+    description: "Confirm whether target zone is reached."
+
+  - id: seal_container
+    order: 7
+    trigger_phrases:
+      - "seal it up"
+      - "lock the lid"
+    description: "Close and lock the lid completely."
