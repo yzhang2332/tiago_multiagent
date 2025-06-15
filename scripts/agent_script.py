@@ -6,6 +6,7 @@ import yaml
 import time
 import sys
 import os
+import json
 
 # Setup path to utils
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -30,6 +31,10 @@ class AgentScript:
         # Set up ROS communication
         rospy.Subscriber("/received_utterance", String, self.on_utterance)
         self.pub = rospy.Publisher("/script_agent_message", String, queue_size=1)
+        self.pub_verbal = rospy.Publisher("/script_agent/verbal_response", String, queue_size=1)
+        self.pub_action = rospy.Publisher("/script_agent/action_instruction", String, queue_size=1)
+        self.pub_nextstep = rospy.Publisher("/script_agent/next_step_prompt", String, queue_size=1)
+
 
         # Create memory-preserving thread
         self.thread = openai.beta.threads.create()
@@ -94,7 +99,30 @@ class AgentScript:
                 latest = ""
 
             rospy.loginfo("[agent_script] ScriptAgent says: %s", latest)
-            self.pub.publish(latest)
+            try:
+                if latest.startswith("```json"):
+                    latest = latest.replace("```json", "").strip()
+                if latest.endswith("```"):
+                    latest = latest[:-3].strip()
+                    
+                parsed = json.loads(latest)
+
+                verbal_response = parsed.get("verbal_response", "")
+                action_instruction = parsed.get("action_instruction", "")
+                # next_step_prompt = parsed.get("next_step_prompt", "")
+
+                rospy.loginfo("[agent_script] Verbal response: %s", verbal_response)
+                rospy.loginfo("[agent_script] Action instruction: %s", action_instruction)
+                # rospy.loginfo("[agent_script] Next-step prompt: %s", next_step_prompt)
+
+                # Publish each to a separate topic
+                self.pub_verbal.publish(verbal_response)
+                self.pub_action.publish(action_instruction)
+                # self.pub_nextstep.publish(next_step_prompt)
+
+            except Exception as e:
+                rospy.logerr(f"[agent_script] JSON parsing failed: {e}")
+                self.pub_verbal.publish(latest)  # fallback
 
         except Exception as e:
             rospy.logerr("[agent_script] Error during ScriptAgent call: %s", str(e))
