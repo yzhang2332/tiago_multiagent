@@ -1,0 +1,11 @@
+markers:
+  - id: 23
+    name: "30 grams powder container"
+  - id: 30
+    name: "35 grams powder container"
+  - id: 42
+    name: "test_tube"
+  - id: 57
+    name: "middle of table"
+  - id: 60
+    name: "left of table"
