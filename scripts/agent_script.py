@@ -33,7 +33,7 @@ class AgentScript:
         self.pub = rospy.Publisher("/script_agent_message", String, queue_size=1)
         self.pub_verbal = rospy.Publisher("/script_agent/verbal_response", String, queue_size=1)
         self.pub_action = rospy.Publisher("/script_agent/action_instruction", String, queue_size=1)
-        self.pub_nextstep = rospy.Publisher("/script_agent/next_step_prompt", String, queue_size=1)
+        # self.pub_nextstep = rospy.Publisher("/script_agent/next_step_prompt", String, queue_size=1)
 
 
         # Create memory-preserving thread
