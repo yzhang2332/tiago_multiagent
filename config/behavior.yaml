@@ -1,6 +1,6 @@
 meta_actions:
   pickup:
-    description: "Pick up a target object using gripper and place it upright"
+    description: "Pick up a target object using gripper without placing it"
     sequence:
       - coarse_localise_target
       - get_current_arm_position
@@ -9,7 +9,7 @@ meta_actions:
       - close_gripper
       - move_up
   place:
-    description: "Place the held object at the target location"
+    description: "Place the held object at the target location and put it down"
     sequence:
       - coarse_localise_target
       - get_current_arm_position

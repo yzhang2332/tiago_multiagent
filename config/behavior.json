@@ -1,0 +1,61 @@
+{
+  "meta_actions": {
+    "pickup": {
+      "description": "Pick up a target object using gripper without placing it",
+      "sequence": [
+        "coarse_localise_target",
+        "get_current_arm_position",
+        "open_gripper",
+        "move_to_open",
+        "close_gripper",
+        "move_up"
+      ]
+    },
+    "place": {
+      "description": "Place the held object at the target location and put it down",
+      "sequence": [
+        "coarse_localise_target",
+        "get_current_arm_position",
+        "move_to_close",
+        "open_gripper",
+        "move_up"
+      ]
+    },
+    "hold": {
+      "description": "Hold the object steady without moving location",
+      "sequence": [
+        "get_current_arm_position",
+        "move_to_close",
+        "close_gripper"
+      ]
+    },
+    "rest": {
+      "description": "Return arm to resting/home pose",
+      "sequence": [
+        "get_current_arm_position",
+        "move_up",
+        "go_home_position"
+      ]
+    }
+  },
+  "primitives": {
+    "open_gripper": {
+      "description": "Open the gripper"
+    },
+    "close_gripper": {
+      "description": "Close the gripper"
+    },
+    "move_up": {
+      "description": "Raise the arm vertically a bit"
+    },
+    "search_head": {
+      "description": "Pan/tilt head to search for ArUco marker"
+    },
+    "detect_aruco_with_gripper_camera": {
+      "description": "Use the gripper camera to detect an ArUco marker"
+    },
+    "explore_area_near_target": {
+      "description": "Move or adjust pose slightly to retry marker detection"
+    }
+  }
+}
