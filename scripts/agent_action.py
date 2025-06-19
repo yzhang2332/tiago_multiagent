@@ -21,6 +21,13 @@ class AgentAction:
         openai.api_key = cfg["openai_api_key"]
         self.assistant_id = cfg["action_agent_id"]
 
+        # Load task and style config
+        with open("../config/behavior.yaml", "r") as f:
+            self.behavior = yaml.safe_load(f)
+
+        with open("../config/object_aruco.yaml", "r") as f:
+            self.aruco = yaml.safe_load(f)
+
         # ROS setup
         rospy.Subscriber("/script_agent/action_instruction", String, self.on_instruction)
         self.execute_pub = rospy.Publisher("/action_agent/execute_sequence", String, queue_size=1)
@@ -30,6 +37,19 @@ class AgentAction:
         # Create LLM thread
         self.thread = openai.beta.threads.create()
         rospy.loginfo("[agent_action] Ready with thread %s", self.thread.id)
+
+        initial_context = f"""
+                            Task Info:
+                            {yaml.dump(self.behavior)}
+
+                            Style Info:
+                            {yaml.dump(self.aruco)}
+                            """
+        openai.beta.threads.messages.create(
+            thread_id=self.thread.id,
+            role="assistant",
+            content=initial_context
+        )
 
     def on_instruction(self, msg):
         instr = msg.data.strip()

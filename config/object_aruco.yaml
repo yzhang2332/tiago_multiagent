@@ -1,11 +1,19 @@
 markers:
-  - id: 23
-    name: "30 grams powder container"
-  - id: 30
-    name: "35 grams powder container"
-  - id: 42
-    name: "test_tube"
-  - id: 57
-    name: "middle of table"
-  - id: 60
-    name: "left of table"
+  - id: 10
+    name: "test tube hold place; lid rest place"
+  - id: 11
+    name: "29 grams powder container"
+  - id: 12
+    name: "30 grams powder containerube"
+  - id: 13
+    name: "31 grams powder container"
+  - id: 14
+    name: "lid"
+  - id: 15
+    name: "middle of the table"
+  - id: 16
+    name: "right of the table"
+  - id: 17
+    name: "left of the table"
+  - id: 18
+    name: "handover spot"

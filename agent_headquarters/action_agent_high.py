@@ -41,27 +41,30 @@ You are provided with:
 
 Your response must be a valid JSON list of steps, each with:
 - action (e.g. "pickup", "place")
-- marker_id (e.g. 23)
+- marker_id (e.g. 10)
 - sequence (a list of primitives)
 
 For example:
 [
   {
     "action": "pickup",
-    "marker_id": 23,
-    "sequence": ["coarse_localise_target", "get_current_arm_position", "open_gripper", "move_to_open", "close_gripper", "move_up"]
-  },
+    "marker_id": 12,
+    "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up"
+    },
   {
     "action": "place",
-    "marker_id": 57,
-    "sequence": ["coarse_localise_target", "get_current_arm_position", "move_to_close", "open_gripper", "move_up"]
+    "marker_id": 18,
+    "sequence": ["search_head", "get_current_arm_position", "move_to_close", "move_down", "open_gripper", "move_up", "go_home_position"]
   }
 ]
+
+If the previous action is to hold something, always do release first before next action.
 
 Your output must only be the JSON list. No explanation.
 """,
     tools=[{"type": "file_search"}],
-    model="gpt-4o"
+    model="gpt-4o",
+    temperature=0
 )
 
 # Attach the vector store to the assistant

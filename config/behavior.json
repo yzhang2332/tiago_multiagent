@@ -3,10 +3,12 @@
     "pickup": {
       "description": "Pick up a target object using gripper without placing it",
       "sequence": [
-        "coarse_localise_target",
+        "search_head",
         "get_current_arm_position",
         "open_gripper",
         "move_to_open",
+        "detect_aruco_with_gripper_camera",
+        "move_down",
         "close_gripper",
         "move_up"
       ]
@@ -14,25 +16,41 @@
     "place": {
       "description": "Place the held object at the target location and put it down",
       "sequence": [
-        "coarse_localise_target",
+        "search_head",
         "get_current_arm_position",
         "move_to_close",
+        "move_down",
         "open_gripper",
-        "move_up"
+        "move_up",
+        "go_home_position"
       ]
     },
     "hold": {
       "description": "Hold the object steady without moving location",
       "sequence": [
+        "search_head",
         "get_current_arm_position",
-        "move_to_close",
+        "open_gripper",
+        "move_to_open",
+        "detect_aruco_with_gripper_camera",
+        "move_down",
         "close_gripper"
       ]
     },
-    "rest": {
+    "release": {
+      "description": "Release the held object",
+      "sequence": [
+        "get_current_arm_position",
+        "open_gripper",
+        "move_up",
+        "go_home_position"
+      ]
+    },
+    "arm_rest": {
       "description": "Return arm to resting/home pose",
       "sequence": [
         "get_current_arm_position",
+        "open_gripper",
         "move_up",
         "go_home_position"
       ]
@@ -46,7 +64,10 @@
       "description": "Close the gripper"
     },
     "move_up": {
-      "description": "Raise the arm vertically a bit"
+      "description": "Raise the gripper vertically a bit"
+    },
+    "move_down": {
+      "description": "Lower the gripper vertically a bit"
     },
     "search_head": {
       "description": "Pan/tilt head to search for ArUco marker"
@@ -56,6 +77,15 @@
     },
     "explore_area_near_target": {
       "description": "Move or adjust pose slightly to retry marker detection"
+    },
+    "get_current_arm_position":{
+      "description": "Update current arm position"
+    },
+    "move_to_open":{
+      "description": "Move to the target position with open gripper"
+    },
+    "go_home_position":{
+      "description":"Move arm to the home position."
     }
   }
 }
