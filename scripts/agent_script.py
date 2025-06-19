@@ -22,10 +22,10 @@ class AgentScript:
         self.assistant_id = config["script_agent_id"]
 
         # Load task and style config
-        with open("../config/task_script.yaml", "r") as f:
+        with open("../config/prompt_high.yaml", "r") as f:
             self.task_data = yaml.safe_load(f)
 
-        with open("../config/exp_prompt.yaml", "r") as f:
+        with open("../config/prompt_explicit_correct_high.yaml", "r") as f:
             self.prompt_data = yaml.safe_load(f)
 
         # Set up ROS communication
@@ -77,7 +77,7 @@ class AgentScript:
 
             # Wait for completion
             while run.status not in ["completed", "failed"]:
-                time.sleep(0.5)
+                time.sleep(0.1)
                 run = openai.beta.threads.runs.retrieve(
                     thread_id=self.thread.id,
                     run_id=run.id

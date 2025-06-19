@@ -55,7 +55,7 @@ class AgentAction:
         )
 
         while run.status not in ["completed", "failed"]:
-            time.sleep(0.2)
+            time.sleep(0.1)
             run = openai.beta.threads.runs.retrieve(thread_id=self.thread.id, run_id=run.id)
 
         if run.status == "failed":

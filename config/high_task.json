@@ -1,0 +1,90 @@
+{
+  "task_id": "high_risk",
+  "title": "Prepare Final Medical Injections",
+  "description": "Assist a human in preparing medical injection for patient in critical condition. Tasks include passing the test tube, picking a pre-measured powder container, holding a test tube, resting the lid, releasing the tube, sealing the test tube, and confirming patient ID.",
+  "steps": [
+    {
+      "id": "task_start",
+      "order": 1,
+      "triggers": [
+        "one more to prepare",
+        "final one",
+        "shall we start",
+        "let's begin"
+      ],
+      "requirement": "Participant signals intent to begin the last preparation.",
+      "action": ""
+    },
+    {
+      "id": "pick_powder_container",
+      "order": 2,
+      "triggers": [
+        "30 grams of powder",
+        "we need 30 grams",
+        "grab the 30 gram one",
+        "get the one marked 30g"
+      ],
+      "requirement": "Participant mentions the 30g powder container or implies it is required.",
+      "action": "Pick up the container labelled '30 grams' and place it in the middle of the table."
+    },
+    {
+      "id": "hold_test_tube",
+      "order": 3,
+      "triggers": [
+        "assist during the transfer",
+        "might spill",
+        "can you hold it",
+        "mind holding the tube"
+      ],
+      "requirement": "Participant or instructor requests help during powder transfer.",
+      "action": "Hold the test tube securely while the powder is poured into it."
+    },
+    {
+      "id": "release_test_tube",
+      "order": 4,
+      "triggers": [
+        "done pouring",
+        "that's in",
+        "it's inside now",
+        "powder's in"
+      ],
+      "requirement": "The powder has been transferred and the tube no longer needs to be held.",
+      "action": "Release the test tube and reposition if needed."
+    },
+    {
+      "id": "rest_lid",
+      "order": 5,
+      "triggers": [
+        "let it stabilise",
+        "rest the lid",
+        "lightly cover",
+        "need a brief moment exposed to the air"
+      ],
+      "requirement": "Participant or instructor asks to leave the lid resting without sealing.",
+      "action": "Gently rest the lid on top of the test tube to allow air exposure."
+    },
+    {
+      "id": "seal_test_tube",
+      "order": 6,
+      "triggers": [
+        "seal it now",
+        "Now it's the time",
+        "seal the test tube"
+      ],
+      "requirement": "Participant or instructor gives the go-ahead to seal.",
+      "action": "Fully close the lid of the test tube."
+    },
+    {
+      "id": "confirm_patient_id",
+      "order": 7,
+      "triggers": [
+        "check the patient's ID",
+        "double check the ID",
+        "what's the ID",
+        "verify the ID"
+      ],
+      "requirement": "Participant requests ID confirmation before concluding.",
+      "action": "Read out the patient ID, which is 342A"
+    }
+  ]
+}
