@@ -55,39 +55,37 @@ def image_callback(msg, aruco_pub):
     except Exception as e:
         rospy.logerr("Failed to convert image: %s", str(e))
 
-def start_remote_script():
-    hostname = "tiago-196c"
-    port = 22
-    username = "pal"
-    password = "pal"  # Replace with actual password
+# def start_remote_script():
+#     hostname = "tiago-196c"
+#     port = 22
+#     username = "pal"
+#     password = "pal"  # Replace with actual password
 
-    try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(hostname, port=port, username=username, password=password)
+#     try:
+#         ssh = paramiko.SSHClient()
+#         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+#         ssh.connect(hostname, port=port, username=username, password=password)
 
-        command = "source /opt/ros/noetic/setup.bash && cd scripts && python3 camera.py"
-        stdin, stdout, stderr = ssh.exec_command(command)
+#         command = "source /opt/ros/noetic/setup.bash && cd scripts && python3 camera.py"
+#         stdin, stdout, stderr = ssh.exec_command(command)
 
-        # print("STDOUT:")
-        # print(stdout.read().decode())
+#         # print("STDOUT:")
+#         # print(stdout.read().decode())
 
-        # print("STDERR:")
-        # print(stderr.read().decode())
+#         # print("STDERR:")
+#         # print(stderr.read().decode())
 
-        ssh.close()
-    except Exception as e:
-        print(f"SSH connection failed: {e}")
-
-
+#         ssh.close()
+#     except Exception as e:
+#         print(f"SSH connection failed: {e}")
 
 
 def main():
-    start_remote_script() 
-    rospy.init_node('gripper_cam', anonymous=True)
-    aruco_pub = rospy.Publisher("/gripper_cam_aruco_pose", JointState, queue_size=1)
+    # start_remote_script() 
+    rospy.init_node('head_cam', anonymous=True)
+    aruco_pub = rospy.Publisher("/head_cam_aruco_pose", JointState, queue_size=1)
 
-    rospy.Subscriber('/camera/image_raw', Image, image_callback, aruco_pub)
+    rospy.Subscriber('/xtion/image_raw', Image, image_callback, aruco_pub)
     rospy.spin()
 
 if __name__ == '__main__':
