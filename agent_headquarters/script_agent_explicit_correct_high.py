@@ -120,7 +120,7 @@ You are a robotic assistant. Your responses must always follow this structured p
 """,
     tools=[{"type": "file_search"}],
     model="gpt-4o",
-    temperature=0.1
+    temperature=0
 )
 
 client.beta.assistants.update(

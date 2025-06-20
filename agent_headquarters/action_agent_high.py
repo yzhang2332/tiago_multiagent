@@ -11,8 +11,8 @@ cfg = load_openai_config()
 client = openai.OpenAI(api_key=cfg["openai_api_key"])
 
 # Upload files for assistant use
-behavior_file_path = "../config/behavior.json"
-aruco_file_path = "../config/object_aruco.json"
+behavior_file_path = "../config/behavior_high.json"
+aruco_file_path = "../config/object_aruco_high.json"
 
 # Upload to vector store
 vector_store = client.beta.vector_stores.create(name="action_context")
@@ -61,52 +61,70 @@ assistant = client.beta.assistants.create(
         ---
 
         EXAMPLE:
+        Chat 1:
+            Input:
+            "Hold the test tube"
 
-        Input:
-        "Hold the test tube"
+            Output:
+            [
+            {
+                "action": "hold",
+                "marker_id": 10,
+                "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper"]
+            }
+            ]
 
-        Output:
-        [
-        {
-            "action": "hold",
-            "marker_id": 10,
-            "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper"]
-        }
-        ]
+            Input:
+            "Rest the lid on top and side of the test tube."
 
-        Input:
-        "Rest the lid on top and side of the test tube."
+            Output:
+            [
+            {
+                "action": "release",
+                "marker_id":,
+                "sequence": ["get_current_arm_position", "open_gripper", "move_up", "go_home_position"]
+            },
+            {
+                "action": "pickup",
+                "marker_id": 14,
+                "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up"]
+            },
+            {
+                "action": "place",
+                "marker_id": 10,
+                "sequence": ["search_head", "get_current_arm_position", "move_to_close", "move_down", "open_gripper", "move_up", "go_home_position"]
+            }
+            ]
 
-        Output:
-        [
-        {
-            "action": "release",
-            "marker_id":,
-            "sequence": ["get_current_arm_position", "open_gripper", "move_up", "go_home_position"]
-        },
-        {
-            "action": "pickup",
-            "marker_id": 14,
-            "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up"]
-        },
-        {
-            "action": "place",
-            "marker_id": 10,
-            "sequence": ["search_head", "get_current_arm_position", "move_to_close", "move_down", "open_gripper", "move_up", "go_home_position"]
-        }
-        ]
+        Chat 2:
+            Input:
+            "Rest the lid on top and side of the test tube."
 
-        Input:
-        "Open your gripper."
+            Output:
+            [
+            {
+                "action": "pickup",
+                "marker_id": 14,
+                "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up"]
+            },
+            {
+                "action": "place",
+                "marker_id": 10,
+                "sequence": ["search_head", "get_current_arm_position", "move_to_close", "move_down", "open_gripper", "move_up", "go_home_position"]
+            }
+            ]
 
-        Output:
-        [
-        {
-            "action": "open_gripper",
-            "marker_id":,
-            "sequence": ["open_gripper"]
+            Input:
+            "Open your gripper."
 
-        }]
+            Output:
+            [
+            {
+                "action": "open_gripper",
+                "marker_id":,
+                "sequence": ["open_gripper"]
+
+            }]
 
         REMEMBER: If you generated a "hold" step earlier, always add a "release" before continuing.
 """,

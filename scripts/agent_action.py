@@ -22,10 +22,10 @@ class AgentAction:
         self.assistant_id = cfg["action_agent_id"]
 
         # Load task and style config
-        with open("../config/behavior.yaml", "r") as f:
+        with open("../config/behavior_high.yaml", "r") as f:
             self.behavior = yaml.safe_load(f)
 
-        with open("../config/object_aruco.yaml", "r") as f:
+        with open("../config/object_aruco_high.yaml", "r") as f:
             self.aruco = yaml.safe_load(f)
 
         # ROS setup
@@ -54,8 +54,8 @@ class AgentAction:
     def on_instruction(self, msg):
         instr = msg.data.strip()
         if not instr:
-            rospy.logwarn("[agent_action] No valid instruction received.")
-            self.status_pub.publish("failed:empty_instruction")
+            rospy.logwarn("[agent_action] Received empty instruction — ignoring.")
+            self.status_pub.publish("warning:empty_instruction")
             return
 
         rospy.loginfo(f"[agent_action] Instruction: {instr}")
@@ -98,13 +98,28 @@ class AgentAction:
             self.status_pub.publish("failed:invalid_json")
             return
 
-        for step in plan:
-            self.status_pub.publish(f"decided:{step['action']}")
-            if "marker_id" in step:
-                self.marker_pub.publish(str(step["marker_id"]))
+        # for step in plan:
+        #     self.status_pub.publish(f"decided:{step['action']}")
+        #     if "marker_id" in step:
+        #         self.marker_pub.publish(str(step["marker_id"]))
 
+        # self.execute_pub.publish(json.dumps({"plan": plan}))
+        # rospy.loginfo(f"[agent_action] Published plan: {plan}")
+
+        if not isinstance(plan, list):
+            rospy.logerr("[agent_action] LLM output is not a list of steps.")
+            self.status_pub.publish("failed:not_a_list")
+            return
+
+        rospy.loginfo("[agent_action] Valid plan received. Publishing...")
+
+        # Publish full plan once
         self.execute_pub.publish(json.dumps({"plan": plan}))
         rospy.loginfo(f"[agent_action] Published plan: {plan}")
+
+        # Publish summary status for monitoring
+        action_summaries = [step.get("action", "unknown") for step in plan]
+        self.status_pub.publish(f"decided_sequence:{'->'.join(action_summaries)}")
 
 if __name__ == "__main__":
     AgentAction()
