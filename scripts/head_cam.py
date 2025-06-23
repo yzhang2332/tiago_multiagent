@@ -18,7 +18,7 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 class HeadCamArucoDetector:
     def __init__(self):
-        rospy.init_node("head_cam_aruco_tf_node")
+        # rospy.init_node("head_cam_aruco_tf_node")
 
         self.bridge = CvBridge()
         self.head_client = actionlib.SimpleActionClient(
@@ -84,7 +84,7 @@ class HeadCamArucoDetector:
 
 
                 self.publish_static_tf(tvec[0][0], rvec[0][0], self.marker_to_find)
-                rospy.loginfo(f"tvec: {tvec[0][0]}, rvec: {rvec[0][0]}")
+                # rospy.loginfo(f"tvec: {tvec[0][0]}, rvec: {rvec[0][0]}")
 
                 rospy.sleep(0.1)
 
@@ -138,7 +138,7 @@ class HeadCamArucoDetector:
             self.marker_to_find = marker_id
             self.scanning = True
 
-        head_positions = [(-0.3, -0.9)]
+        head_positions = [(-0.3, -0.9), (0.0, -0.9), (0.3, -0.9)]
         i = 0
 
         rospy.loginfo(f"Started scanning for marker {marker_id}...")
@@ -156,3 +156,7 @@ class HeadCamArucoDetector:
 
     def spin(self):
         rospy.spin()
+    
+    def stop(self):
+        with self.lock:
+            self.scanning = False

@@ -1,13 +1,13 @@
-# from head_cam import HeadCamArucoDetector
+from head_cam import HeadCamArucoDetector
 
-# detector = HeadCamArucoDetector()
+detector = HeadCamArucoDetector()
 
-# # Start ROS spinning in a thread
-# import threading
-# threading.Thread(target=detector.spin, daemon=True).start()
+# Start ROS spinning in a thread
+import threading
+threading.Thread(target=detector.spin, daemon=True).start()
 
-# # When ready, trigger the search
-# detector.search_for_marker(1)
+# When ready, trigger the search
+detector.search_for_marker(1)
 
 
 
@@ -131,11 +131,11 @@ def postion_adjust(x_aruco, y_aruco):
 
 rospy.init_node("move_arm_cartesian_test")
 
-# # Wait for simulated time to start running
-# rospy.loginfo("Waiting for simulated time to be active...")
-# while rospy.Time.now().to_sec() == 0:
-#     rospy.sleep(0.1)
-# rospy.loginfo("Simulated time has started.")
+# Wait for simulated time to start running
+rospy.loginfo("Waiting for simulated time to be active...")
+while rospy.Time.now().to_sec() == 0:
+    rospy.sleep(0.1)
+rospy.loginfo("Simulated time has started.")
 
 
 # ! remove this when test on real robot
