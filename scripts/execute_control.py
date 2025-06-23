@@ -458,7 +458,7 @@ import cv2.aruco as aruco
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from std_msgs.msg import Float32MultiArray, String
-from geometry_msgs.msg import PoseStamped, Quaternion
+from geometry_msgs.msg import PoseStamped, Quaternion, PointStamped
 import actionlib
 import tf
 import tf_conversions
@@ -541,11 +541,9 @@ def joint_state_callback(msg):
 
 def aruco_pose_callback(msg):
     global aruco_array
-    aruco_array = np.array([msg.name[0], msg.position[0],msg.position[1]], dtype=object)
-    # msg.name[0] == "1"
-    # aruco_markers_updated_array_2 = np.array([msg.name[0], msg.position[0],msg.position[1]], dtype=object)
+    aruco_array = np.array([msg.point.x, msg.point.y, msg.point.z], dtype=np.float32)
 
-def postion_adjust(x_aruco, y_aruco, object_number):
+def postion_adjust(x_aruco, y_aruco):
     X_update = (200-x_aruco)*0.013/82
     Y_update = (343-y_aruco)*0.010/65
 
@@ -641,14 +639,8 @@ def run():
     rospy.Subscriber('/joint_states', JointState, joint_state_callback)
     rospy.loginfo("Subscribed to joint states.")
 
-    rospy.Subscriber('/gripper_cam_aruco_pose', JointState, aruco_pose_callback)
+    rospy.Subscriber('/gripper_cam_aruco_pose', PointStamped, aruco_pose_callback)
     rospy.loginfo("Subscribed to aruco pose")
-
-    listener = tf.TransformListener()
-    aruco_tf_pub = rospy.Publisher("/aruco_pose_tf", JointState, queue_size=1)
-    aruco_sub = rospy.Subscriber("/aruco_pose", JointState, aruco_callback)
-    aruco_pub = rospy.Publisher("/aruco_pose_TF", JointState, queue_size=1)
-
 
     # Wait to get first values to ensure everything is initialized properly
     rospy.wait_for_message('/joint_states', JointState)
@@ -676,7 +668,7 @@ def run():
     y_aruco = aruco_array[2]
     x_diff, y_diff = postion_adjust(x_aruco, y_aruco, id_aruco)
 
-    goal_position = [X_pose+X_update, Y_pose+Y_update, -0.13]
+    goal_position = [x+x_diff, y+y_diff, -0.13]
             
 
 if __name__ == "__main__":

@@ -5,21 +5,26 @@ import cv2.aruco as aruco
 import numpy as np
 import tf
 import tf_conversions
+import tf2_ros
+import threading
+import actionlib
+
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import PoseStamped, PointStamped, TransformStamped
+from geometry_msgs.msg import PointStamped, TransformStamped
 from cv_bridge import CvBridge
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-import actionlib
-import threading
-import tf2_ros
+
 
 class HeadCamArucoDetector:
     def __init__(self):
         rospy.init_node("head_cam_aruco_tf_node")
 
         self.bridge = CvBridge()
-        self.head_client = actionlib.SimpleActionClient('/head_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+        self.head_client = actionlib.SimpleActionClient(
+            '/head_controller/follow_joint_trajectory',
+            FollowJointTrajectoryAction
+        )
         self.head_client.wait_for_server()
 
         self.listener = tf.TransformListener()
@@ -31,7 +36,7 @@ class HeadCamArucoDetector:
 
         self.ARUCO_DICT = aruco.getPredefinedDictionary(aruco.DICT_4X4_100)
         self.DETECTION_PARAMS = aruco.DetectorParameters()
-        self.MARKER_LENGTH = 0.02  # in metres
+        self.MARKER_LENGTH = 0.02  # Marker size in metres
 
         rospy.Subscriber("/xtion/rgb/image_rect_color", Image, self.image_callback)
 
@@ -62,41 +67,54 @@ class HeadCamArucoDetector:
 
             if ids is not None and self.marker_to_find in ids.flatten():
                 index = ids.flatten().tolist().index(self.marker_to_find)
-                rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners[index], self.MARKER_LENGTH, np.eye(3), np.zeros(5))
+                camera_matrix = np.array([
+                    [523.5531882248562, 0.0, 329.4655423070979],
+                    [0.0, 522.6007280941504, 227.58372039112177],
+                    [0.0, 0.0, 1.0]
+                ])
 
-                # br = tf.TransformBroadcaster()
-                # br.sendTransform(tvec[0][0],
-                #                 tf_conversions.transformations.quaternion_from_euler(*rvec[0][0]),
-                #                 rospy.Time.now(),
-                #                 f"aruco_marker_{self.marker_to_find}",
-                #                 "xtion_rgb_optical_frame")
+                dist_coeffs = np.array([0.03437334, -0.12169691, -0.00709335, 0.00239277, 0.0])
+
+                rvec, tvec, _ = aruco.estimatePoseSingleMarkers(
+                    corners[index],
+                    self.MARKER_LENGTH,
+                    camera_matrix,
+                    dist_coeffs
+                )
+
+
                 self.publish_static_tf(tvec[0][0], rvec[0][0], self.marker_to_find)
                 rospy.loginfo(f"tvec: {tvec[0][0]}, rvec: {rvec[0][0]}")
 
                 rospy.sleep(0.1)
 
                 try:
-                    (trans, rot) = self.listener.lookupTransform("base_link", f"aruco_marker_{self.marker_to_find}", rospy.Time(0))
+                    (trans, rot) = self.listener.lookupTransform(
+                        "torso_lift_link",
+                        f"aruco_marker_{self.marker_to_find}",
+                        rospy.Time(0)
+                    )
+
                     pt_msg = PointStamped()
-                    pt_msg.header.frame_id = "base_link"
+                    pt_msg.header.frame_id = "torso_lift_link"
                     pt_msg.header.stamp = rospy.Time.now()
                     pt_msg.point.x = trans[0]
                     pt_msg.point.y = trans[1]
                     pt_msg.point.z = trans[2]
+
                     self.aruco_pub.publish(pt_msg)
                     rospy.loginfo(f"Found marker {self.marker_to_find} and published its pose.")
 
-                    # Stop scanning
-                    with self.lock:
-                        self.scanning = False
-                        self.marker_to_find = None
+                    # with self.lock:
+                    #     self.scanning = False
+                    #     self.marker_to_find = None
 
                 except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                     rospy.logwarn("TF lookup failed")
 
         except Exception as e:
             rospy.logerr(f"Image processing failed: {e}")
-    
+
     def publish_static_tf(self, tvec, rvec, marker_id):
         static_broadcaster = tf2_ros.StaticTransformBroadcaster()
         static_transform = TransformStamped()
@@ -120,7 +138,7 @@ class HeadCamArucoDetector:
             self.marker_to_find = marker_id
             self.scanning = True
 
-        head_positions = [(-0.6, -0.8), (0, -0.8), (0.6, -0.8), (0, -0.8)]
+        head_positions = [(-0.3, -0.9)]
         i = 0
 
         rospy.loginfo(f"Started scanning for marker {marker_id}...")
@@ -133,7 +151,7 @@ class HeadCamArucoDetector:
 
             pan, tilt = head_positions[i % len(head_positions)]
             self.rotate_head(pan, tilt)
-            rospy.sleep(1.0)
+            rospy.sleep(5.0)
             i += 1
 
     def spin(self):
