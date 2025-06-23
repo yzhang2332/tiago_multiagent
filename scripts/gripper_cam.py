@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
 import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
 import cv2.aruco as aruco
 from sensor_msgs.msg import JointState
+from geometry_msgs.msg import PointStamped
 import numpy as np
 import paramiko
 
@@ -42,12 +44,13 @@ def image_callback(msg, aruco_pub):
 
 
                 # publish aruco pose
-                pose_msg = JointState()
-                pose_msg.name = [str(marker_id)]
-                pose_msg.position = [avg_x, avg_y]
+                pose_msg = PointStamped()
+                pose_msg.header.stamp = rospy.Time.now()
+                pose_msg.header.frame_id = "camera_frame"  # or your real frame
+                pose_msg.point.x = avg_x
+                pose_msg.point.y = avg_y
+                pose_msg.point.z = 0.0  # optional for 2D
                 aruco_pub.publish(pose_msg)
-
-
 
         # Display the image
         cv2.imshow("Camera Feed", cv_image)
@@ -79,13 +82,10 @@ def start_remote_script():
     except Exception as e:
         print(f"SSH connection failed: {e}")
 
-
-
-
 def main():
     start_remote_script() 
     rospy.init_node('gripper_cam', anonymous=True)
-    aruco_pub = rospy.Publisher("/gripper_cam_aruco_pose", JointState, queue_size=1)
+    aruco_pub = rospy.Publisher("/gripper_cam_aruco_pose", PointStamped, queue_size=10)
 
     rospy.Subscriber('/camera/image_raw', Image, image_callback, aruco_pub)
     rospy.spin()

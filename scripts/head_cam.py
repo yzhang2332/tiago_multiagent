@@ -1,92 +1,140 @@
+#!/usr/bin/env python3
 import rospy
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
 import cv2
 import cv2.aruco as aruco
-from sensor_msgs.msg import JointState
 import numpy as np
-import paramiko
+import tf
+import tf_conversions
+from sensor_msgs.msg import Image
+from geometry_msgs.msg import PoseStamped, PointStamped, TransformStamped
+from cv_bridge import CvBridge
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+import actionlib
+import threading
+import tf2_ros
 
+class HeadCamArucoDetector:
+    def __init__(self):
+        rospy.init_node("head_cam_aruco_tf_node")
 
-def image_callback(msg, aruco_pub):
-    bridge = CvBridge()
-    try:
-        # Convert ROS Image message to OpenCV image
-        cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")
+        self.bridge = CvBridge()
+        self.head_client = actionlib.SimpleActionClient('/head_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+        self.head_client.wait_for_server()
 
-        # Convert to grayscale (required for ArUco detection)
-        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        self.listener = tf.TransformListener()
+        self.aruco_pub = rospy.Publisher("/head_cam_aruco_pose", PointStamped, queue_size=10)
 
-        # Define the dictionary and parameters for ArUco marker detection
-        aruco_dict = aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_100)  # You can choose different dictionaries
-        parameters = aruco.DetectorParameters()
+        self.marker_to_find = None
+        self.scanning = False
+        self.lock = threading.Lock()
 
-        # Detect ArUco markers in the image
-        corners, ids, rejected_img_points = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+        self.ARUCO_DICT = aruco.getPredefinedDictionary(aruco.DICT_4X4_100)
+        self.DETECTION_PARAMS = aruco.DetectorParameters()
+        self.MARKER_LENGTH = 0.02  # in metres
 
-        # If markers are detected, draw them
-        if ids is not None:
-            cv2.aruco.drawDetectedMarkers(cv_image, corners, ids)
+        rospy.Subscriber("/xtion/rgb/image_rect_color", Image, self.image_callback)
 
-            for i, corner in enumerate(corners):
-                # print(f"Marker ID: {ids[i][0]}")
-                marker_id = ids[i][0]
-                X_avg = int((corners[i][0][0][0]+corners[i][0][1][0])/2)
-                Y_avg = int((corners[i][0][0][1]+corners[i][0][1][1])/2)
+    def rotate_head(self, pan, tilt, duration=2.0):
+        goal = FollowJointTrajectoryGoal()
+        trajectory = JointTrajectory()
+        trajectory.joint_names = ['head_1_joint', 'head_2_joint']
 
+        point = JointTrajectoryPoint()
+        point.positions = [pan, tilt]
+        point.time_from_start = rospy.Duration(duration)
+        trajectory.points.append(point)
 
-                marker_corners = corner[0]  # Extract the corner points from the list
-                # Calculate the average X and Y for this marker
-                avg_x = np.mean(marker_corners[:, 0])  # Average X-coordinate
-                avg_y = np.mean(marker_corners[:, 1])  # Average Y-coordinate
+        goal.trajectory = trajectory
+        self.head_client.send_goal(goal)
+        self.head_client.wait_for_result()
 
+    def image_callback(self, msg):
+        with self.lock:
+            if not self.scanning or self.marker_to_find is None:
+                return
 
-                # publish aruco pose
-                pose_msg = JointState()
-                pose_msg.name = [str(marker_id)]
-                pose_msg.position = [avg_x, avg_y]
-                aruco_pub.publish(pose_msg)
+        try:
+            cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+            gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
 
+            corners, ids, _ = aruco.detectMarkers(gray, self.ARUCO_DICT, parameters=self.DETECTION_PARAMS)
 
+            if ids is not None and self.marker_to_find in ids.flatten():
+                index = ids.flatten().tolist().index(self.marker_to_find)
+                rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners[index], self.MARKER_LENGTH, np.eye(3), np.zeros(5))
 
-        # Display the image
-        cv2.imshow("Camera Feed", cv_image)
-        cv2.waitKey(1)
-    except Exception as e:
-        rospy.logerr("Failed to convert image: %s", str(e))
+                # br = tf.TransformBroadcaster()
+                # br.sendTransform(tvec[0][0],
+                #                 tf_conversions.transformations.quaternion_from_euler(*rvec[0][0]),
+                #                 rospy.Time.now(),
+                #                 f"aruco_marker_{self.marker_to_find}",
+                #                 "xtion_rgb_optical_frame")
+                self.publish_static_tf(tvec[0][0], rvec[0][0], self.marker_to_find)
+                rospy.loginfo(f"tvec: {tvec[0][0]}, rvec: {rvec[0][0]}")
 
-# def start_remote_script():
-#     hostname = "tiago-196c"
-#     port = 22
-#     username = "pal"
-#     password = "pal"  # Replace with actual password
+                rospy.sleep(0.1)
 
-#     try:
-#         ssh = paramiko.SSHClient()
-#         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-#         ssh.connect(hostname, port=port, username=username, password=password)
+                try:
+                    (trans, rot) = self.listener.lookupTransform("base_link", f"aruco_marker_{self.marker_to_find}", rospy.Time(0))
+                    pt_msg = PointStamped()
+                    pt_msg.header.frame_id = "base_link"
+                    pt_msg.header.stamp = rospy.Time.now()
+                    pt_msg.point.x = trans[0]
+                    pt_msg.point.y = trans[1]
+                    pt_msg.point.z = trans[2]
+                    self.aruco_pub.publish(pt_msg)
+                    rospy.loginfo(f"Found marker {self.marker_to_find} and published its pose.")
 
-#         command = "source /opt/ros/noetic/setup.bash && cd scripts && python3 camera.py"
-#         stdin, stdout, stderr = ssh.exec_command(command)
+                    # Stop scanning
+                    with self.lock:
+                        self.scanning = False
+                        self.marker_to_find = None
 
-#         # print("STDOUT:")
-#         # print(stdout.read().decode())
+                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                    rospy.logwarn("TF lookup failed")
 
-#         # print("STDERR:")
-#         # print(stderr.read().decode())
+        except Exception as e:
+            rospy.logerr(f"Image processing failed: {e}")
+    
+    def publish_static_tf(self, tvec, rvec, marker_id):
+        static_broadcaster = tf2_ros.StaticTransformBroadcaster()
+        static_transform = TransformStamped()
+        static_transform.header.stamp = rospy.Time.now()
+        static_transform.header.frame_id = "xtion_rgb_optical_frame"
+        static_transform.child_frame_id = f"aruco_marker_{marker_id}"
+        static_transform.transform.translation.x = tvec[0]
+        static_transform.transform.translation.y = tvec[1]
+        static_transform.transform.translation.z = tvec[2]
 
-#         ssh.close()
-#     except Exception as e:
-#         print(f"SSH connection failed: {e}")
+        q = tf_conversions.transformations.quaternion_from_euler(*rvec)
+        static_transform.transform.rotation.x = q[0]
+        static_transform.transform.rotation.y = q[1]
+        static_transform.transform.rotation.z = q[2]
+        static_transform.transform.rotation.w = q[3]
 
+        static_broadcaster.sendTransform(static_transform)
 
-def main():
-    # start_remote_script() 
-    rospy.init_node('head_cam', anonymous=True)
-    aruco_pub = rospy.Publisher("/head_cam_aruco_pose", JointState, queue_size=1)
+    def search_for_marker(self, marker_id):
+        with self.lock:
+            self.marker_to_find = marker_id
+            self.scanning = True
 
-    rospy.Subscriber('/xtion/image_raw', Image, image_callback, aruco_pub)
-    rospy.spin()
+        head_positions = [(-0.6, -0.8), (0, -0.8), (0.6, -0.8), (0, -0.8)]
+        i = 0
 
-if __name__ == '__main__':
-    main()
+        rospy.loginfo(f"Started scanning for marker {marker_id}...")
+
+        while not rospy.is_shutdown():
+            with self.lock:
+                if not self.scanning:
+                    rospy.loginfo(f"Stopped scanning. Marker {marker_id} was found.")
+                    return
+
+            pan, tilt = head_positions[i % len(head_positions)]
+            self.rotate_head(pan, tilt)
+            rospy.sleep(1.0)
+            i += 1
+
+    def spin(self):
+        rospy.spin()
