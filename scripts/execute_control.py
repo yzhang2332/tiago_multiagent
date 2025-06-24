@@ -201,7 +201,7 @@ def move_to_open(): # TODO: adjust offset
 def move_to_close(): # TODO
     rospy.logingo("Execute move to close")
 
-def detect_aruco_with_gripper_camera(): # TODO: move gripper around; adjust parameters
+def detect_aruco_with_gripper_camera(): # TODO: adjust parameters
     global gripper_aruco_locked
     gripper_aruco_locked = False
 
@@ -312,7 +312,7 @@ def send_gripper_goal(positions): # ready
     gripper_client.send_goal(goal)
     gripper_client.wait_for_result()
 
-def move_arm(direction, step=0.03): # TODO
+def move_arm(direction, step=0.03): # ready
     if current_joint_positions is None:
         rospy.logwarn("No current joint positions. Cannot move arm.")
         return
@@ -359,27 +359,27 @@ def move_arm(direction, step=0.03): # TODO
     # ! execution
     move_arm_cartesian(new_pos, rpy, duration=1.0)
 
-def move_up(step=0.03): # TODO
+def move_up(step=0.03): # ready
     rospy.loginfo("Simulated move_up primitive.")
     move_arm("up", step)
 
-def move_down(step=0.03): # TODO
+def move_down(step=0.03): # ready
     rospy.loginfo("Simulated move_down primitive.")
     move_arm("down", step)
 
-def move_left(step=0.03): # TODO
+def move_left(step=0.03): # ready
     rospy.loginfo("Simulated move_up primitive.")
     move_arm("left", step)
 
-def move_right(step=0.03): # TODO
+def move_right(step=0.03): # ready
     rospy.loginfo("Simulated move_up primitive.")
     move_arm("right", step)
 
-def move_forward(step=0.03): # TODO
+def move_forward(step=0.03): # ready
     rospy.loginfo("Simulated move_up primitive.")
     move_arm("forward", step)
 
-def move_backward(step=0.03): # TODO
+def move_backward(step=0.03): # ready
     rospy.loginfo("Simulated move_up primitive.")
     move_arm("backward", step)
 
