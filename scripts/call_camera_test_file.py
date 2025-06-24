@@ -1,13 +1,15 @@
-from head_cam import HeadCamArucoDetector
+# from head_cam import HeadCamArucoDetector
+# import rospy
 
-detector = HeadCamArucoDetector()
+# rospy.init_node("head_cam_aruco_tf_node")
+# detector = HeadCamArucoDetector()
 
-# Start ROS spinning in a thread
-import threading
-threading.Thread(target=detector.spin, daemon=True).start()
+# # Start ROS spinning in a thread
+# import threading
+# threading.Thread(target=detector.spin, daemon=True).start()
 
-# When ready, trigger the search
-detector.search_for_marker(1)
+# # When ready, trigger the search
+# detector.search_for_marker(1)
 
 
 

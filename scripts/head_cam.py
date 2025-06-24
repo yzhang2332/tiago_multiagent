@@ -37,10 +37,15 @@ class HeadCamArucoDetector:
         self.ARUCO_DICT = aruco.getPredefinedDictionary(aruco.DICT_4X4_100)
         self.DETECTION_PARAMS = aruco.DetectorParameters()
         self.MARKER_LENGTH = 0.02  # Marker size in metres
+        # self.MARKER_LENGTH = 0.05  # Marker size in metres
+
+        self.last_head_state = 0  # 0 = pending
+        self.marker_published = False
 
         rospy.Subscriber("/xtion/rgb/image_rect_color", Image, self.image_callback)
 
     def rotate_head(self, pan, tilt, duration=2.0):
+        self.last_head_state=0
         goal = FollowJointTrajectoryGoal()
         trajectory = JointTrajectory()
         trajectory.joint_names = ['head_1_joint', 'head_2_joint']
@@ -53,11 +58,17 @@ class HeadCamArucoDetector:
         goal.trajectory = trajectory
         self.head_client.send_goal(goal)
         self.head_client.wait_for_result()
+        self.last_head_state = self.head_client.get_state()
 
     def image_callback(self, msg):
         with self.lock:
             if not self.scanning or self.marker_to_find is None:
                 return
+        
+        lookup_success = False
+        attempts = 0
+        max_attempts = 10
+        retry_delay = 0.2  # seconds
 
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
@@ -82,35 +93,59 @@ class HeadCamArucoDetector:
                     dist_coeffs
                 )
 
+                # Check if marker is near centre of image
+                marker_centre = corners[index][0].mean(axis=0)
+                img_cx = cv_image.shape[1] / 2
+                img_cy = cv_image.shape[0] / 2
 
-                self.publish_static_tf(tvec[0][0], rvec[0][0], self.marker_to_find)
-                # rospy.loginfo(f"tvec: {tvec[0][0]}, rvec: {rvec[0][0]}")
+                tolerance_px = 100  # pixels tolerance for "central" area
 
-                rospy.sleep(0.1)
+                if self.last_head_state == 3:
 
-                try:
-                    (trans, rot) = self.listener.lookupTransform(
-                        "torso_lift_link",
-                        f"aruco_marker_{self.marker_to_find}",
-                        rospy.Time(0)
-                    )
+                    if (abs(marker_centre[0] - img_cx) < tolerance_px and
+                        abs(marker_centre[1] - img_cy) < tolerance_px):
 
-                    pt_msg = PointStamped()
-                    pt_msg.header.frame_id = "torso_lift_link"
-                    pt_msg.header.stamp = rospy.Time.now()
-                    pt_msg.point.x = trans[0]
-                    pt_msg.point.y = trans[1]
-                    pt_msg.point.z = trans[2]
+                        # stop head rotation
+                        with self.lock:
+                                self.scanning = False 
 
-                    self.aruco_pub.publish(pt_msg)
-                    rospy.loginfo(f"Found marker {self.marker_to_find} and published its pose.")
+                        if self.last_head_state == 3:  # actionlib.GoalStatus.SUCCEEDED
+                            
+                            rospy.sleep(3.0)  # delay duration+1s before publishing
 
-                    # with self.lock:
-                    #     self.scanning = False
-                    #     self.marker_to_find = None
+                            self.publish_static_tf(tvec[0][0], rvec[0][0], self.marker_to_find)
+                            # rospy.loginfo(f"tvec: {tvec[0][0]}, rvec: {rvec[0][0]}")
 
-                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                    rospy.logwarn("TF lookup failed")
+                            rospy.sleep(0.1)
+                            while not lookup_success and attempts < max_attempts:
+                                try:
+                                    (trans, rot) = self.listener.lookupTransform(
+                                        "torso_lift_link",
+                                        f"aruco_marker_{self.marker_to_find}",
+                                        rospy.Time(0)
+                                    )
+
+                                    pt_msg = PointStamped()
+                                    pt_msg.header.frame_id = "torso_lift_link"
+                                    pt_msg.header.stamp = rospy.Time.now()
+                                    pt_msg.point.x = trans[0]
+                                    pt_msg.point.y = trans[1]
+                                    pt_msg.point.z = trans[2]
+
+                                    self.aruco_pub.publish(pt_msg)
+                                    self.marker_published = True
+                                    rospy.loginfo(f"Found marker {self.marker_to_find} and published its pose.")
+                                    lookup_success = True
+
+                                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                                    attempts += 1
+                                    rospy.logwarn(f"TF lookup failed (attempt {attempts}). Retrying in {retry_delay}s...")
+                                    rospy.sleep(retry_delay)
+
+                            if not lookup_success:
+                                rospy.logerr(f"TF lookup failed after {max_attempts} attempts.")
+                        else:
+                            rospy.loginfo("Waiting 1s after head motion before publishing...")
 
         except Exception as e:
             rospy.logerr(f"Image processing failed: {e}")
@@ -138,7 +173,7 @@ class HeadCamArucoDetector:
             self.marker_to_find = marker_id
             self.scanning = True
 
-        head_positions = [(-0.3, -0.9), (0.0, -0.9), (0.3, -0.9)]
+        head_positions = [(-0.7, -1), (0.0, -1), (0.7, -1), (0.7, -0.6), (0.0, -0.6), (-0.7, -0.6)]
         i = 0
 
         rospy.loginfo(f"Started scanning for marker {marker_id}...")
@@ -147,12 +182,17 @@ class HeadCamArucoDetector:
             with self.lock:
                 if not self.scanning:
                     rospy.loginfo(f"Stopped scanning. Marker {marker_id} was found.")
+                    rospy.loginfo("Waiting for marker to be published...")
+                    while not self.marker_published:
+                        rospy.sleep(0.1)
                     return
 
             pan, tilt = head_positions[i % len(head_positions)]
             self.rotate_head(pan, tilt)
-            rospy.sleep(5.0)
+            rospy.sleep(1)
             i += 1
+
+        rospy.loginfo("Publishing complete.")
 
     def spin(self):
         rospy.spin()
