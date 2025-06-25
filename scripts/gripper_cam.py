@@ -79,9 +79,9 @@ class OneShotArucoDetector:
                         pose_msg.point.y = avg_y
                         pose_msg.point.z = 0.0
                         self.pub.publish(pose_msg)
-                        rospy.sleep(1)
+                        rospy.sleep(0.2)
 
-                        print(f"Marker {marker_id} at ({avg_x:.2f}, {avg_y:.2f})")
+                        # print(f"Marker {marker_id} at ({avg_x:.2f}, {avg_y:.2f})")
                         self.found = True
                         if self.auto_shutdown:
                             rospy.signal_shutdown("Aruco marker detected. Shutting down.")

@@ -87,7 +87,7 @@ assistant = client.beta.assistants.create(
             {
                 "action": "pickup",
                 "marker_id": 14,
-                "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up"]
+                "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up", "move_away_clear_view"]
             },
             {
                 "action": "place",
@@ -105,7 +105,7 @@ assistant = client.beta.assistants.create(
             {
                 "action": "pickup",
                 "marker_id": 14,
-                "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up"]
+                "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up", "move_away_clear_view"]
             },
             {
                 "action": "place",

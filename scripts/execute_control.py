@@ -81,9 +81,11 @@ def move_arm_joints(end_joint_list, duration):
     # arm_pub.publish(traj_msg)
     goal = FollowJointTrajectoryGoal()
     goal.trajectory = traj_msg
+
+    # ! Debug or Execute
+    # rospy.logdebug("debug mode: no execution")
     arm_client.send_goal(goal)
     arm_client.wait_for_result()
-    # rospy.sleep(duration+0.5)
     rospy.loginfo("Arm execution finished")
 
 def move_arm_cartesian(goal_position, goal_orientation, duration=5.0):
@@ -209,7 +211,14 @@ def move_to_open(): # TODO: adjust offset
     move_arm_cartesian(goal.tolist(), [0, 0, pi/2])
 
 def move_to_close(): # TODO
-    rospy.logingo("Execute move to close")
+    rospy.loginfo("Execute move to close")
+    offset = [-0.08, 0.0, -0.15]
+    head_aurco_postion = np.array([head_aruco_array[0], head_aruco_array[1], 0.0])
+    goal = head_aurco_postion + np.array(offset)
+
+    # ! execution
+    move_arm_cartesian(goal.tolist(), [0, 0, pi/2])
+
 
 def detect_aruco_with_gripper_camera(): # TODO: adjust parameters
     global gripper_aruco_locked, gripper_aruco_miss, stored_head_aruco
@@ -386,40 +395,51 @@ def move_arm(direction, step=0.03): # ready
     move_arm_cartesian(new_pos, rpy, duration=1.0)
 
 def move_up(step=0.04): # ready
-    rospy.loginfo("Simulated move_up primitive.")
+    rospy.loginfo("Execute move_up primitive.")
     move_arm("up", step)
 
 def move_down(step=0.02): # ready
-    rospy.loginfo("Simulated move_down primitive.")
+    rospy.loginfo("Execute move_down primitive.")
     move_arm("down", step)
 
 def move_left(step=0.03): # ready
-    rospy.loginfo("Simulated move_up primitive.")
+    rospy.loginfo("Execute move_up primitive.")
     move_arm("left", step)
 
 def move_right(step=0.03): # ready
-    rospy.loginfo("Simulated move_up primitive.")
+    rospy.loginfo("Execute move_up primitive.")
     move_arm("right", step)
 
 def move_forward(step=0.03): # ready
-    rospy.loginfo("Simulated move_up primitive.")
+    rospy.loginfo("Execute move_up primitive.")
     move_arm("forward", step)
 
 def move_backward(step=0.03): # ready
-    rospy.loginfo("Simulated move_up primitive.")
+    rospy.loginfo("Execute move_up primitive.")
     move_arm("backward", step)
 
 def get_current_arm_position(): # ready
     rospy.loginfo("get_current_arm_position primitive.")
 
-def go_home_position(): # TODO: also reset head and gripper
+def go_home_position(): # ready
     rospy.loginfo("Reseting to home position")
     home_joint_list = [0.07, 0.7, -1.3, 1.68, 0.72, -1.29, 0.16]
+
+    # ! execution
     move_arm_joints(home_joint_list, 5.0)
     open_gripper()
     rotate_head(0.0, 0.0)
     rospy.loginfo("Home position reached.")
     rospy.sleep(0.5)
+
+def move_away_clear_view(): # TODO: avoid arm blocking the view
+    rospy.loginfo("move to clear view position")
+    home_joint_list = [0.42, 0.9, -1.24, 1.49, 0.95, -1.39, 0.26]
+
+    # ! execution
+    move_arm_joints(home_joint_list, 5.0)
+    rospy.loginfo("Clear view position reached.")
+    rospy.sleep(0.2)
 
 # === Init & Main ===
 def run():

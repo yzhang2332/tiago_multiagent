@@ -10,7 +10,8 @@
         "detect_aruco_with_gripper_camera",
         "move_down",
         "close_gripper",
-        "move_up"
+        "move_up",
+        "move_away_clear_view"
       ]
     },
     "place": {
@@ -39,15 +40,6 @@
     },
     "release": {
       "description": "Release the held object",
-      "sequence": [
-        "get_current_arm_position",
-        "open_gripper",
-        "move_up",
-        "go_home_position"
-      ]
-    },
-    "arm_rest": {
-      "description": "Return arm to resting/home pose",
       "sequence": [
         "get_current_arm_position",
         "open_gripper",
@@ -86,6 +78,9 @@
     },
     "go_home_position":{
       "description":"Move arm to the home position."
+    },
+    "move_away_clear_view":{
+      "description":"Move arm away to clear robot's camera's view."
     }
   }
 }

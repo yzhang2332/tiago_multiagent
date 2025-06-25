@@ -10,6 +10,7 @@ meta_actions:
       - move_down
       - close_gripper
       - move_up
+      - move_away_clear_view
 
   place:
     description: "Place the held object at the target location and put it down"
@@ -32,14 +33,6 @@ meta_actions:
       - detect_aruco_with_gripper_camera
       - move_down
       - close_gripper
-
-  arm_rest:
-    description: "Return arm to resting/home pose"
-    sequence:
-      - get_current_arm_position
-      - open_gripper
-      - move_up
-      - go_home_position
 
 primitives:
   open_gripper:
@@ -71,3 +64,6 @@ primitives:
 
   go_home_position:
     description: "Move arm to the home position."
+  
+  move_away_clear_view:
+    description: "Move arm away to clear robot's camera's view."
