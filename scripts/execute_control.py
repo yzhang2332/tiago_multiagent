@@ -52,6 +52,7 @@ head_aruco_locked = False
 gripper_aruco_locked = False
 plan_lock = Lock()
 plan_executing = False
+execution_status_pub = None
 
 
 # === Interpolation and Control ===
@@ -149,13 +150,16 @@ def gripper_aruco_pose_callback(msg):
 
 # === Instruction Handling ===
 def instruction_callback(msg):
-    global current_marker_id, plan_executing
+    global current_marker_id, plan_executing, execution_status_pub
 
     with plan_lock:
         if plan_executing:
             rospy.logwarn("Plan already executing. Ignoring new instruction.")
             return
         plan_executing = True
+    
+    if execution_status_pub:
+        execution_status_pub.publish("received")
 
     try:
         data = json.loads(msg.data)
@@ -177,6 +181,8 @@ def instruction_callback(msg):
     finally:
         with plan_lock:
             plan_executing = False
+        if execution_status_pub:
+            execution_status_pub.publish("finished")
 
 # === Utility ===
 def postion_adjust(x_pixel, y_pixel):
@@ -430,7 +436,7 @@ def go_home_position(): # ready
     open_gripper()
     rotate_head(0.0, 0.0)
     rospy.loginfo("Home position reached.")
-    rospy.sleep(0.5)
+    rospy.sleep(0.1)
 
 def move_away_clear_view(): # TODO: avoid arm blocking the view
     rospy.loginfo("move to clear view position")
@@ -443,7 +449,7 @@ def move_away_clear_view(): # TODO: avoid arm blocking the view
 
 # === Init & Main ===
 def run():
-    global ik_solver_pos, fk_solver, arm_pub, gripper_client, head_client, arm_client, current_joint_positions
+    global ik_solver_pos, fk_solver, arm_pub, gripper_client, head_client, arm_client, current_joint_positions, execution_status_pub
 
     # # ! for gazebo only: Wait for simulated time to start running
     # rospy.loginfo("Waiting for simulated time to be active...")
@@ -469,7 +475,8 @@ def run():
     rospy.Subscriber('/gripper_cam_aruco_pose', PointStamped, gripper_aruco_pose_callback)
     rospy.Subscriber('/action_agent/execute_sequence', String, instruction_callback)
 
-    arm_pub = rospy.Publisher('/arm_controller/command', JointTrajectory, queue_size=10)
+    # arm_pub = rospy.Publisher('/arm_controller/command', JointTrajectory, queue_size=10)
+    execution_status_pub = rospy.Publisher('/execution_status', String, queue_size=10)
 
     gripper_client = actionlib.SimpleActionClient('/parallel_gripper_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
     gripper_client.wait_for_server()
@@ -477,7 +484,7 @@ def run():
     head_client = actionlib.SimpleActionClient('/head_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
     head_client.wait_for_server()
 
-    arm_client = actionlib.SimpleActionClient('/arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+    arm_client = actionlib.SimpleActionClient('/safe_arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
     arm_client.wait_for_server()
 
     while current_joint_positions is None and not rospy.is_shutdown():
