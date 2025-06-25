@@ -97,6 +97,10 @@ def move_arm_cartesian(goal_position, goal_orientation, duration=5.0):
         move_arm_joints([desired_joint_positions[i] for i in range(number_of_joints)], duration)
     else:
         rospy.logerr("IK solution not found.")
+        # ! Error solution 1
+        go_home_position()
+        raise RuntimeError("Gripper ArUco detection failed. Aborting plan.")
+        # ! Error solution 2: TTS "I need help"
 
 # === Subscribers ===
 def joint_state_callback(msg):
@@ -128,7 +132,11 @@ def head_aruco_pose_callback(msg):
         rospy.logdebug("[Callback] ArUco already locked, ignoring.")
 
 def gripper_aruco_pose_callback(msg):
-    global gripper_aruco_array, gripper_aruco_locked
+    global gripper_aruco_array, gripper_aruco_locked, gripper_aruco_miss
+    if gripper_aruco_miss:
+        rospy.logdebug("[Callback] Detection previously marked as failed. Ignoring message.")
+        return
+    
     rospy.loginfo(f"[Callback] Got pose from gripper_cam: {msg.point}")
     if not gripper_aruco_locked:
         gripper_aruco_array = np.array([msg.point.x, msg.point.y, msg.point.z], dtype=np.float32)
@@ -190,10 +198,12 @@ def search_head(): # ready
     detector.search_for_marker(current_marker_id)
 
 def move_to_open(): # TODO: adjust offset
+    global stored_head_aruco
     rospy.loginfo("Execute move to open")
     offset = [-0.03, 0.0, -0.15]
     head_aurco_postion = np.array([head_aruco_array[0], head_aruco_array[1], 0.0])
     goal = head_aurco_postion + np.array(offset)
+    stored_head_aruco = head_aurco_postion.copy()
 
     # ! execution
     move_arm_cartesian(goal.tolist(), [0, 0, pi/2])
@@ -202,19 +212,13 @@ def move_to_close(): # TODO
     rospy.logingo("Execute move to close")
 
 def detect_aruco_with_gripper_camera(): # TODO: adjust parameters
-    global gripper_aruco_locked
+    global gripper_aruco_locked, gripper_aruco_miss, stored_head_aruco
     gripper_aruco_locked = False
+    gripper_aruco_miss = False
 
     if current_joint_positions is None:
         rospy.logerr("No joint positions available. Cannot compute pose.")
         return
-    
-    # Get current pose of gripper via FK
-    current_pose = Frame()
-    fk_solver.JntToCart(current_joint_positions, current_pose)
-    pos = current_pose.p
-    rot = current_pose.M
-    rpy = rot.GetRPY()
 
     rospy.loginfo("Starting gripper camera detection...")
 
@@ -227,32 +231,44 @@ def detect_aruco_with_gripper_camera(): # TODO: adjust parameters
     rospy.loginfo("Waiting for gripper ArUco pose...")
 
     # Determine primary direction based on gripper position
-    if pos[0] > 0.5 and pos[1] <= 0:
-        search_directions = ["down", "backward", "left"]
-        search_steps = [0.03, 0.05, 0.03]
-    elif pos[0] > 0.5 and pos[1] > 0:
-        search_directions = ["down", "backward", "right"]
-        search_steps = [0.03, 0.05, 0.04]
-    elif pos[0] <= 0.5 and pos[1] <= 0:
-        search_directions = ["left", "up"]
-        search_steps = [0.05, 0.02]
-    elif pos[0] <= 0.5 and pos[1] > 0:
-        search_directions = ["right", "up"]
-        search_steps = [0.05, 0.02]
+    if stored_head_aruco[0] >= 0.7 and -0.3 <= stored_head_aruco[1] <= 0.35:
+        search_directions = ["down", "backward", "backward"]
+        search_steps = [0.02, 0.04, 0.04]
+    elif stored_head_aruco[0] >= 0.7 and stored_head_aruco[1] < -0.3:
+        search_directions = ["down", "backward", "left", "left"]
+        search_steps = [0.02, 0.04, 0.03, 0.03]
+    elif stored_head_aruco[0] >= 0.7 and stored_head_aruco[1] > 0.35:
+        search_directions = ["down", "backward", "right", "right"]
+        search_steps = [0.02, 0.04, 0.03, 0.03]
+    elif stored_head_aruco[0] < 0.7 and stored_head_aruco[1] < -0.3:
+        search_directions = ["up", "left", "left"]
+        search_steps = [0.01, 0.03, 0.03]
+    elif stored_head_aruco[0] < 0.7 and stored_head_aruco[1] > 0.35:
+        search_directions = ["up", "right", "right"]
+        search_steps = [0.01, 0.03, 0.03]
+    else:
+        search_directions = ["left", "right", "forward", "backward"]
+        search_steps = [0.02, 0.04, 0.02, 0.04]
+
 
     attempt = 0
-    max_attempts = 6
+    max_attempts = 4
 
-    while not gripper_aruco_locked and attempt < max_attempts:
+    while not gripper_aruco_locked and not gripper_aruco_miss and attempt < max_attempts:
         direction = search_directions[attempt % len(search_directions)]
         step = search_steps[attempt % len(search_directions)]
         move_arm(direction, step)
         rospy.sleep(0.5)
         attempt += 1
 
-    if not gripper_aruco_locked:
+    if not gripper_aruco_locked and not gripper_aruco_miss:
         rospy.logerr("Gripper ArUco marker not detected after search attempts.")
-        return
+        gripper_aruco_miss=True
+        # return
+        # ! Error solution 1
+        go_home_position()
+        raise RuntimeError("Gripper ArUco detection failed. Aborting plan.")
+        # ! Error solution 2: TTS "I need help"
 
     rospy.loginfo("Gripper ArUco pose received.")
 
@@ -283,19 +299,15 @@ def detect_aruco_with_gripper_camera(): # TODO: adjust parameters
 
 def open_gripper(): # ready
     rospy.loginfo("Execute open gripper")
-
     send_gripper_goal([1, 1])
-    rospy.sleep(0.5)
-
+    rospy.sleep(0.2)
     rospy.loginfo("Finish open gripper")
 
 
 def close_gripper(): # ready
     rospy.loginfo("Execute close gripper")
-
-    send_gripper_goal([0.5, 0.5])
-    rospy.sleep(0.5)
-
+    send_gripper_goal([0.04, 0.04])
+    rospy.sleep(0.2)
     rospy.loginfo("Finish close gripper")
 
 def send_gripper_goal(positions): # ready
@@ -311,6 +323,20 @@ def send_gripper_goal(positions): # ready
     # ! execution
     gripper_client.send_goal(goal)
     gripper_client.wait_for_result()
+
+def rotate_head(pan, tilt, duration=2.0):
+    goal = FollowJointTrajectoryGoal()
+    trajectory = JointTrajectory()
+    trajectory.joint_names = ['head_1_joint', 'head_2_joint']
+
+    point = JointTrajectoryPoint()
+    point.positions = [pan, tilt]
+    point.time_from_start = rospy.Duration(duration)
+    trajectory.points.append(point)
+
+    goal.trajectory = trajectory
+    head_client.send_goal(goal)
+    head_client.wait_for_result()
 
 def move_arm(direction, step=0.03): # ready
     if current_joint_positions is None:
@@ -359,11 +385,11 @@ def move_arm(direction, step=0.03): # ready
     # ! execution
     move_arm_cartesian(new_pos, rpy, duration=1.0)
 
-def move_up(step=0.03): # ready
+def move_up(step=0.04): # ready
     rospy.loginfo("Simulated move_up primitive.")
     move_arm("up", step)
 
-def move_down(step=0.03): # ready
+def move_down(step=0.02): # ready
     rospy.loginfo("Simulated move_down primitive.")
     move_arm("down", step)
 
@@ -390,8 +416,10 @@ def go_home_position(): # TODO: also reset head and gripper
     rospy.loginfo("Reseting to home position")
     home_joint_list = [0.07, 0.7, -1.3, 1.68, 0.72, -1.29, 0.16]
     move_arm_joints(home_joint_list, 5.0)
+    open_gripper()
+    rotate_head(0.0, 0.0)
     rospy.loginfo("Home position reached.")
-    rospy.sleep(1.0)
+    rospy.sleep(0.5)
 
 # === Init & Main ===
 def run():
@@ -439,6 +467,7 @@ def run():
     rospy.loginfo("Controllers connected. Waiting for plans.")
 
     # go_home_position()
+
 
     rospy.spin()
 

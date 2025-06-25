@@ -51,6 +51,8 @@ class OneShotArucoDetector:
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_100)
         self.parameters = aruco.DetectorParameters()
 
+        rospy.loginfo(f"Looking for ArUco marker ID {self.target_marker_id}...")
+
     def image_callback(self, msg):
         if self.found:
             return
@@ -59,7 +61,7 @@ class OneShotArucoDetector:
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
             corners, ids, _ = aruco.detectMarkers(gray, self.aruco_dict, parameters=self.parameters)
-            rospy.loginfo("Start gripper aruco detection")
+            # rospy.loginfo("Start gripper aruco detection")
 
             if ids is not None:
                 for i, corner in enumerate(corners):
@@ -90,7 +92,9 @@ class OneShotArucoDetector:
 
     def start(self):
         rospy.loginfo(f"Looking for ArUco marker ID {self.target_marker_id}...")
-        rospy.spin()
+        # rospy.spin()
+
+    
 
 if __name__ == '__main__':
     import sys

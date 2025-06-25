@@ -36,8 +36,10 @@ class HeadCamArucoDetector:
 
         self.ARUCO_DICT = aruco.getPredefinedDictionary(aruco.DICT_4X4_100)
         self.DETECTION_PARAMS = aruco.DetectorParameters()
-        self.MARKER_LENGTH = 0.02  # Marker size in metres
-        # self.MARKER_LENGTH = 0.05  # Marker size in metres
+        # self.MARKER_LENGTH = 0.02  # Marker size in metres
+        self.MARKER_LENGTH = 0.03  # Marker size in metres
+        # self.MARKER_LENGTH = 0.05  # Marker size in gazebo
+
 
         self.last_head_state = 0  # 0 = pending
         self.marker_published = False
@@ -111,7 +113,7 @@ class HeadCamArucoDetector:
 
                         if self.last_head_state == 3:  # actionlib.GoalStatus.SUCCEEDED
                             
-                            rospy.sleep(3.0)  # delay duration+1s before publishing
+                            rospy.sleep(4.0)  # delay duration+2s before publishing
 
                             self.publish_static_tf(tvec[0][0], rvec[0][0], self.marker_to_find)
                             # rospy.loginfo(f"tvec: {tvec[0][0]}, rvec: {rvec[0][0]}")
@@ -173,7 +175,13 @@ class HeadCamArucoDetector:
             self.marker_to_find = marker_id
             self.scanning = True
 
-        head_positions = [(-0.6, -0.8), (0.0, -1), (0.6, -0.8), (0.3, -0.7), (0.0, -0.8), (-0.3, -0.7)]
+        head_positions = [(0.0, -0.9), (0.0, -1.0),
+                          (-0.2, -1.0), (-0.2, -0.9),
+                          (0.2, -0.9), (0.2, -1.0),
+                          (-0.4, -0.9), (-0.4, -1.0),
+                          (0.4, -1.0), (0.4, -0.9),
+                          (-0.6, -1.0), (-0.6, -0.9),
+                          (-0.8, -0.9), (-0.8, -1.0)]
         i = 0
 
         rospy.loginfo(f"Started scanning for marker {marker_id}...")
@@ -189,7 +197,7 @@ class HeadCamArucoDetector:
 
             pan, tilt = head_positions[i % len(head_positions)]
             self.rotate_head(pan, tilt)
-            rospy.sleep(1)
+            rospy.sleep(0.11)
             i += 1
 
         rospy.loginfo("Publishing complete.")
