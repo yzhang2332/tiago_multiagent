@@ -34,7 +34,7 @@ class VoiceRecognitionServer:
         # Audio recording parameters
         self.sample_rate = 16000 # 16000 44100 48000
         self.threshold = 3  # SilencTruee detection threshold
-        self.silence_duration = 1  # Seconds of silence to consider the speaker has stopped
+        self.silence_duration = 4  # Seconds of silence to consider the speaker has stopped
         self.stream = None
         self.device_index = None
 
