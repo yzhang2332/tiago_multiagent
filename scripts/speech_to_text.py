@@ -30,17 +30,18 @@ class VoiceRecognitionServer:
         
         # Create a publisher for the recognized text
         self.text_pub = rospy.Publisher('/received_utterance', String, queue_size=10)
+        self.listen_pub = rospy.Publisher("/listen_signal", String, queue_size=10)
 
         # Audio recording parameters
         self.sample_rate = 16000 # 16000 44100 48000
-        self.threshold = 3  # SilencTruee detection threshold
-        self.silence_duration = 4  # Seconds of silence to consider the speaker has stopped
+        self.threshold = 3.5 # SilencTruee detection threshold
+        self.silence_duration = 3  # Seconds of silence to consider the speaker has stopped
         self.stream = None
         self.device_index = None
 
         self.listen_flag = True
         self.listen_subscriber = rospy.Subscriber("/listen_signal", String, self.listen_callback)
-        self.listen_pub = rospy.Publisher("/listen_signal", String, queue_size=10)
+        
     
     def listen_callback(self, msg):
         rospy.loginfo(f"Received listen signal: {msg.data}")
@@ -61,70 +62,98 @@ class VoiceRecognitionServer:
         if np.max(rms) > 0.03:
             self.threshold = np.max(rms) * 100
         else:
-            self.threshold = 3  # set minimum threshold
+            self.threshold = 3.5  # set minimum threshold
         rospy.loginfo(f"Calibration complete. New threshold: {self.threshold}")
 
+    # def record_until_silence(self):
+    #     """Record from the microphone until silence is detected."""
+    #     rospy.loginfo("Starting recording...")
+    #     recorded_data = []
+    #     silent_frames = 0
+    #     recording = False
 
-    # def check_grammar(self, transcript):
-    #     """Checks and corrects the grammar of the given transcript using ChatGPT."""
-    #     rospy.loginfo("Checking grammar")
+    #     def callback(indata, frames, time, status):
+    #         nonlocal recorded_data, silent_frames, recording #, silent_frames_buffer
+    #         if status:
+    #             print(status, file=sys.stderr)
+    #         amplitude = np.linalg.norm(indata)*9
 
-    #     # Send the transcript to ChatGPT for grammar correction
-    #     response = openai.chat.completions.create(
-    #         model="gpt-4",
-    #         messages= [
-    #             {"role": "user", "content": f"Please correct the grammar and any inappropriate word of the following text: \"{transcript}\". If you think there is nothing to correct, just return 'grammatically correct'."}],
-    #         max_tokens=500
-    #     )
-    #     corrected_text = response.choices[0].message.content
+    #         if amplitude < self.threshold:
+    #             if recording:
+    #                 silent_frames += 1
+    #             if silent_frames > self.sample_rate / frames * self.silence_duration:
+    #                 raise sd.CallbackStop
+    #         else:
+    #             recording = True
+    #             silent_frames = 0
+                
+    #             recorded_data.append(indata.copy())
+    #             # print(recorded_data[-1])
         
-
-    #     # Implementing logic to return the original transcript if the correction indicates no change
-    #     if "grammatically correct" or "Grammatically correct" in corrected_text:
-    #         return transcript  # Return the original if the API indicates it's already correct or no meaningful correction was made
+    #     with sd.InputStream(callback=callback, samplerate=self.sample_rate, 
+    #                         channels=1, device=self.device_index, dtype='float32'):
+    #         try:
+    #             sd.sleep(4000)  # Failsafe timeout
+    #         except sd.CallbackStop:
+    #             pass
+        
+    #     rospy.loginfo("Recording stopped.")
+        
+    #     if recorded_data:
+    #         return np.concatenate(recorded_data, axis=0)
     #     else:
-    #         return corrected_text  # Return the corrected text
-
+    #         rospy.logwarn("No audio recorded – returning empty array.")
+    #         return np.array([], dtype='float32')
 
     def record_until_silence(self):
-        """Record from the microphone until silence is detected."""
         rospy.loginfo("Starting recording...")
         recorded_data = []
         silent_frames = 0
         recording = False
 
+        min_duration_seconds = 3
+        min_frames = int(min_duration_seconds * self.sample_rate)
+
         def callback(indata, frames, time, status):
-            nonlocal recorded_data, silent_frames, recording #, silent_frames_buffer
+            nonlocal recorded_data, silent_frames, recording
             if status:
                 print(status, file=sys.stderr)
-            amplitude = np.linalg.norm(indata)*9
+
+            amplitude = np.linalg.norm(indata) * 3
+            max_silent_frames = int(self.sample_rate * self.silence_duration / frames)
 
             if amplitude < self.threshold:
-                if recording:
+                if recording and len(recorded_data) * frames > min_frames:
                     silent_frames += 1
-                if silent_frames > self.sample_rate / frames * self.silence_duration:
-                    raise sd.CallbackStop
             else:
-                recording = True
                 silent_frames = 0
-                
+                if not recording:
+                    recording = True
+                    rospy.loginfo("Voice detected, start recording.")
+
+            if recording:
                 recorded_data.append(indata.copy())
-                # print(recorded_data[-1])
-        
-        with sd.InputStream(callback=callback, samplerate=self.sample_rate, 
+
+            if silent_frames > max_silent_frames:
+                raise sd.CallbackStop
+
+        with sd.InputStream(callback=callback, samplerate=self.sample_rate,
                             channels=1, device=self.device_index, dtype='float32'):
             try:
-                sd.sleep(4000)  # Failsafe timeout
+                sd.sleep(10000)  # generous timeout
             except sd.CallbackStop:
                 pass
-        
+
         rospy.loginfo("Recording stopped.")
-        
+
         if recorded_data:
-            return np.concatenate(recorded_data, axis=0)
+            audio = np.concatenate(recorded_data, axis=0)
+            rospy.loginfo(f"Recorded {audio.shape[0]} samples.")
+            return audio
         else:
             rospy.logwarn("No audio recorded – returning empty array.")
             return np.array([], dtype='float32')
+
     
     
     def recognize_speech(self):    
@@ -135,6 +164,8 @@ class VoiceRecognitionServer:
             rospy.logwarn("Audio data is empty. Skipping transcription.")
             return None
 
+        self.listen_pub.publish("stop_listen")
+        
         # Save audio data to a temporary file
         with tempfile.NamedTemporaryFile(suffix='.wav', delete=True) as tmpfile:
             sf.write(tmpfile, audio_data, self.sample_rate)
@@ -164,7 +195,6 @@ class VoiceRecognitionServer:
         text = self.recognize_speech()
         if text:
             self.text_pub.publish(text)
-            self.listen_pub.publish("stop_listen")
         else:
             rospy.loginfo("No text recognized or error occurred.")
             self.listen_pub.publish("start_listen")
