@@ -14,12 +14,14 @@ class SignalCoordinatorGUI:
         # Shared state
         self.latest_msgs = {
             "/listen_signal": "",
+            "/script_agent_status": "",
+            "/action_agent_status": "", 
+            "/execution_status": "",
             "/received_utterance": "",
             "/script_agent/verbal_response": "",
             "/tts_status": "",
             "/script_agent/action_instruction": "",
-            "/action_agent/execute_sequence": "",
-            "/execution_status": ""
+            "/action_agent/execute_sequence": ""            
         }
 
         # GUI labels for each topic
@@ -39,6 +41,8 @@ class SignalCoordinatorGUI:
         rospy.Subscriber("/received_utterance", String, self.update_msg("/received_utterance"))
         rospy.Subscriber("/script_agent/verbal_response", String, self.update_msg("/script_agent/verbal_response"))
         rospy.Subscriber("/action_agent/execute_sequence", String, self.update_msg("/action_agent/execute_sequence"))
+        rospy.Subscriber("/script_agent_status", String, self.update_msg("/script_agent_status"))
+        rospy.Subscriber("/action_agent_status", String, self.update_msg("/action_agent_status"))        
         rospy.Subscriber("/listen_signal", String, self.update_msg("/listen_signal"))
 
     def update_msg(self, topic):

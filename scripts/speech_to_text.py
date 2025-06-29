@@ -43,11 +43,17 @@ class VoiceRecognitionServer:
         self.listen_subscriber = rospy.Subscriber("/listen_signal", String, self.listen_callback)
         
     
+    # def listen_callback(self, msg):
+    #     rospy.loginfo(f"Received listen signal: {msg.data}")
+    #     if msg.data.lower() == "start_listen":
+    #         self.listen_flag = True
+
     def listen_callback(self, msg):
         rospy.loginfo(f"Received listen signal: {msg.data}")
         if msg.data.lower() == "start_listen":
             self.listen_flag = True
-
+        elif msg.data.lower() == "stop_listen":
+            self.listen_flag = False
 
 
     def calibrate_threshold(self, calibration_duration=1):

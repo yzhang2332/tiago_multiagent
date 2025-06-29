@@ -31,7 +31,7 @@ class AgentAction:
         # ROS setup
         rospy.Subscriber("/script_agent/action_instruction", String, self.on_instruction)
         self.execute_pub = rospy.Publisher("/action_agent/execute_sequence", String, queue_size=1)
-        self.status_pub  = rospy.Publisher("/action_agent/status", String, queue_size=1)
+        self.status_pub  = rospy.Publisher("/action_agent_status", String, queue_size=1)
         self.marker_pub  = rospy.Publisher("/action_agent/target_marker", String, queue_size=1)
 
         # Create LLM thread
@@ -51,14 +51,17 @@ class AgentAction:
             content=initial_context
         )
 
+        self.status_pub.publish("waiting")
+
     def on_instruction(self, msg):
         instr = msg.data.strip()
         if not instr:
             rospy.logwarn("[agent_action] Received empty instruction — ignoring.")
-            self.status_pub.publish("warning:empty_instruction")
+            self.status_pub.publish("empty_instruction")
             return
 
         rospy.loginfo(f"[agent_action] Instruction: {instr}")
+        self.status_pub.publish("received")
 
         # Proceed with thread messaging etc.
         openai.beta.threads.messages.create(
@@ -80,7 +83,7 @@ class AgentAction:
 
         if run.status == "failed":
             rospy.logwarn("[agent_action] LLM classification failed.")
-            self.status_pub.publish("failed:llm")
+            self.status_pub.publish("failed")
             return
 
         # Get response
@@ -95,7 +98,7 @@ class AgentAction:
             plan = json.loads(response_text)
         except Exception as e:
             rospy.logerr(f"[agent_action] Invalid JSON from LLM: {e}")
-            self.status_pub.publish("failed:invalid_json")
+            self.status_pub.publish("failed")
             return
 
         # for step in plan:
@@ -108,7 +111,7 @@ class AgentAction:
 
         if not isinstance(plan, list):
             rospy.logerr("[agent_action] LLM output is not a list of steps.")
-            self.status_pub.publish("failed:not_a_list")
+            self.status_pub.publish("failed")
             return
 
         rospy.loginfo("[agent_action] Valid plan received. Publishing...")
@@ -117,9 +120,9 @@ class AgentAction:
         self.execute_pub.publish(json.dumps({"plan": plan}))
         rospy.loginfo(f"[agent_action] Published plan: {plan}")
 
-        # Publish summary status for monitoring
-        action_summaries = [step.get("action", "unknown") for step in plan]
-        self.status_pub.publish(f"decided_sequence:{'->'.join(action_summaries)}")
+        self.status_pub.publish("finished")
+        rospy.sleep(1.0)
+        self.status_pub.publish("waiting")
 
 if __name__ == "__main__":
     AgentAction()

@@ -20,6 +20,7 @@ class TTSService():
         self.tts_status_pub = rospy.Publisher("/tts_status", String, queue_size=10)
 
         rospy.loginfo("TTSService ready and listening for verbal responses.")
+        self.tts_status_pub.publish("waiting")
         rospy.spin()
 
     def tts(self, text):
@@ -33,6 +34,8 @@ class TTSService():
 
         # After TTS is done, publish "finished"
         self.tts_status_pub.publish("finished")
+        rospy.sleep(1.0)
+        self.tts_status_pub.publish("waiting")
 
     def tts_callback(self, msg):
         rospy.loginfo(f"Received text for TTS: {msg.data}")

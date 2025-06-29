@@ -89,7 +89,7 @@ def move_arm_joints(end_joint_list, duration):
     arm_client.wait_for_result()
     rospy.loginfo("Arm execution finished")
 
-def move_arm_cartesian(goal_position, goal_orientation, duration=5.0):
+def move_arm_cartesian(goal_position, goal_orientation, duration=3.5):
     desired_position = Vector(*goal_position)
     desired_orientation = Rotation.RPY(*goal_orientation)
     desired_frame = Frame(desired_orientation, desired_position)
@@ -173,16 +173,20 @@ def instruction_callback(msg):
                         func()
                     except Exception as e:
                         rospy.logerr(f"Primitive '{primitive}' failed: {e}")
+                        execution_status_pub.publish("failed")
                         break
                 else:
                     rospy.logwarn(f"Unknown primitive: {primitive}")
     except Exception as e:
         rospy.logerr(f"Error in instruction_callback: {e}")
+        execution_status_pub.publish("failed")
     finally:
         with plan_lock:
             plan_executing = False
         if execution_status_pub:
             execution_status_pub.publish("finished")
+            rospy.sleep(1.0)
+            execution_status_pub.publish("waiting")
 
 # === Utility ===
 def postion_adjust(x_pixel, y_pixel):
@@ -208,8 +212,13 @@ def search_head(): # ready
 def move_to_open(): # TODO: adjust offset
     global stored_head_aruco
     rospy.loginfo("Execute move to open")
-    offset = [-0.03, 0.0, -0.15]
+    
     head_aurco_postion = np.array([head_aruco_array[0], head_aruco_array[1], 0.0])
+    if head_aruco_array[0]>0.8:
+        offset = [-0.08, 0.0, -0.18]
+    else:
+        offset = [-0.03, 0.0, -0.18]
+
     goal = head_aurco_postion + np.array(offset)
     stored_head_aruco = head_aurco_postion.copy()
 
@@ -218,8 +227,11 @@ def move_to_open(): # TODO: adjust offset
 
 def move_to_close(): # TODO
     rospy.loginfo("Execute move to close")
-    offset = [-0.08, 0.0, -0.15]
     head_aurco_postion = np.array([head_aruco_array[0], head_aruco_array[1], 0.0])
+    if head_aruco_array[0]>0.8:
+        offset = [-0.08, 0.0, -0.22]
+    else:
+        offset = [-0.03, 0.0, -0.22]
     goal = head_aurco_postion + np.array(offset)
 
     # ! execution
@@ -294,7 +306,7 @@ def detect_aruco_with_gripper_camera(): # TODO: adjust parameters
     rot = current_pose.M
     rpy = rot.GetRPY()
 
-    offset = np.array([0.0, 0.0, -0.2])
+    offset = np.array([0.0, 0.0, -0.22])
 
     aruco_pos = gripper_aruco_array[:2]
     dx, dy = postion_adjust(aruco_pos[1], aruco_pos[0])
@@ -310,7 +322,7 @@ def detect_aruco_with_gripper_camera(): # TODO: adjust parameters
     print(goal)
 
     # ! execution
-    move_arm_cartesian(goal, [0, 0, pi/2])
+    move_arm_cartesian(goal, [0, 0, pi/2], 1.5)
 
 def open_gripper(): # ready
     rospy.loginfo("Execute open gripper")
@@ -321,7 +333,7 @@ def open_gripper(): # ready
 
 def close_gripper(): # ready
     rospy.loginfo("Execute close gripper")
-    send_gripper_goal([0.04, 0.04])
+    send_gripper_goal([0.035, 0.035])
     rospy.sleep(0.2)
     rospy.loginfo("Finish close gripper")
 
@@ -432,7 +444,7 @@ def go_home_position(): # ready
     home_joint_list = [0.07, 0.7, -1.3, 1.68, 0.72, -1.29, 0.16]
 
     # ! execution
-    move_arm_joints(home_joint_list, 5.0)
+    move_arm_joints(home_joint_list, 4.0)
     open_gripper()
     rotate_head(0.0, 0.0)
     rospy.loginfo("Home position reached.")
@@ -443,7 +455,7 @@ def move_away_clear_view(): # TODO: avoid arm blocking the view
     home_joint_list = [0.42, 0.9, -1.24, 1.49, 0.95, -1.39, 0.26]
 
     # ! execution
-    move_arm_joints(home_joint_list, 5.0)
+    move_arm_joints(home_joint_list, 3.0)
     rospy.loginfo("Clear view position reached.")
     rospy.sleep(0.2)
 
@@ -492,8 +504,11 @@ def run():
         rospy.sleep(0.1)
 
     rospy.loginfo("Controllers connected. Waiting for plans.")
+    execution_status_pub.publish("waiting")
 
+    # open_gripper()
     # go_home_position()
+    
 
 
     rospy.spin()

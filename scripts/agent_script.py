@@ -30,7 +30,8 @@ class AgentScript:
 
         # Set up ROS communication
         rospy.Subscriber("/received_utterance", String, self.on_utterance)
-        self.pub = rospy.Publisher("/script_agent_message", String, queue_size=1)
+
+        self.pub = rospy.Publisher("/script_agent_status", String, queue_size=1)
         self.pub_verbal = rospy.Publisher("/script_agent/verbal_response", String, queue_size=1)
         self.pub_action = rospy.Publisher("/script_agent/action_instruction", String, queue_size=1)
         # self.pub_nextstep = rospy.Publisher("/script_agent/next_step_prompt", String, queue_size=1)
@@ -54,12 +55,16 @@ class AgentScript:
             content=initial_context
         )
 
+        self.pub.publish("waiting")
+
     def on_utterance(self, msg):
         utterance = msg.data.strip()
         if not utterance:
             return
 
         rospy.loginfo("[agent_script] Received utterance: %s", utterance)
+
+        self.pub.publish("received")
 
         # Append message to thread memory
         openai.beta.threads.messages.create(
@@ -85,6 +90,7 @@ class AgentScript:
 
             if run.status == "failed":
                 rospy.logerr("[agent_script] ScriptAgent run failed.")
+                self.pub.publish("failed")
                 return
 
             # Get latest reply from assistant
@@ -118,14 +124,19 @@ class AgentScript:
                 # Publish each to a separate topic
                 self.pub_verbal.publish(verbal_response)
                 self.pub_action.publish(action_instruction)
-                # self.pub_nextstep.publish(next_step_prompt)
+                
+                self.pub.publish("finished")
+                rospy.sleep(1.0)
+                self.pub.publish("waiting")
 
             except Exception as e:
                 rospy.logerr(f"[agent_script] JSON parsing failed: {e}")
-                self.pub_verbal.publish(latest)  # fallback
+                # self.pub_verbal.publish(latest)  # fallback
+                self.pub.publish("failed")
 
         except Exception as e:
             rospy.logerr("[agent_script] Error during ScriptAgent call: %s", str(e))
+            self.pub.publish("failed")
 
 if __name__ == "__main__":
     AgentScript()
