@@ -9,7 +9,7 @@ import threading
 from tts_msgs.action import TTS  # Replace with your actual action interface
 
 # Laptop address (receiver of the "finished" message)
-LAPTOP_IP = '10.68.0.131'
+LAPTOP_IP = '10.68.0.128'
 LAPTOP_PORT = 9092  # Use any open port you'll listen on
 
 # Port this machine (Robot B) listens on
