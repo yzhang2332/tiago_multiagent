@@ -120,6 +120,11 @@ class WizardAgent:
         self.processor_thread = Thread(target=self.process_loop)
         self.processor_thread.start()
 
+        self.completed_actions = set()
+        self.latest_execution_status = "waiting"
+        self.script_trigger_pub = rospy.Publisher("/start_script_mode", String, queue_size=1)
+
+
         rospy.loginfo("WizardAgent (LLM-based) started.")
 
     def load_context(self):
@@ -153,8 +158,28 @@ class WizardAgent:
             rospy.Subscriber(topic, String, self.buffer_message)
 
     def buffer_message(self, msg):
+        # with self.buffer_lock:
+        #     self.message_queue.put((time.time(), msg._connection_header['topic'], msg.data.strip()))
+
+        topic = msg._connection_header['topic']
+        data = msg.data.strip()
+
         with self.buffer_lock:
-            self.message_queue.put((time.time(), msg._connection_header['topic'], msg.data.strip()))
+            self.message_queue.put((time.time(), topic, data))
+
+        # Track execution completion
+        if topic == "/execution_status":
+            self.latest_execution_status = data.lower()
+
+        # Track completed action instructions
+        if topic == "/script_agent/action_instruction":
+            if "tube" in data:
+                self.completed_actions.add("tube")
+                rospy.loginfo("Added 'pick_test_tube'")
+            elif "powder" in data:
+                self.completed_actions.add("powder")
+                rospy.loginfo("Added 'pick_powder_container'")
+
 
     def process_loop(self):
         rate = rospy.Rate(2)
@@ -164,9 +189,17 @@ class WizardAgent:
                 if msgs:
                     decision = self.query_agent(msgs)
                     self.publish_decision(decision)
+
+                    if self.should_trigger_script():
+                        rospy.loginfo("[WizardAgent] Triggering scripted Instructor–Tiago flow.")
+                        self.script_trigger_pub.publish("start")
             except Exception as e:
                 rospy.logwarn(f"WizardAgent error: {e}")
             rate.sleep()
+    
+    def should_trigger_script(self):
+        required = {"tube", "powder"}
+        return required.issubset(self.completed_actions) and self.latest_execution_status == "finished"
 
     def drain_messages(self):
         msgs = []
