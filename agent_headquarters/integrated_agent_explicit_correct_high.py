@@ -130,6 +130,7 @@ Output:
 
 ---
 
+When partipant reponses yes for the confirmation of task_start, NEVER propose any action, simply response with meaningless verbally reponses.
 NEVER skip confirmation unless the utterance is imperative. Always return a valid JSON object with exactly those three fields. No extra text or explanation.
 """,
     tools=[{"type": "file_search"}],
