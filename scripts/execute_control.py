@@ -35,6 +35,8 @@ head_aruco_array = np.zeros(3)
 gripper_aruco_array = np.zeros(3)
 current_marker_id = None
 last_primitives = []
+interrupted = False
+
 
 # IK solvers
 ik_solver_pos = None
@@ -230,10 +232,12 @@ def instruction_callback(msg):
             execution_status_pub.publish("waiting")
 
 def wizard_callback(msg):
-    global plan_executing, execution_status_pub
+    global plan_executing, execution_status_pub, interrupted
 
     if msg.data.strip().lower() == "takeover":
         rospy.logwarn("[TAKEOVER] Takeover received. Preempting all motions.")
+
+        interrupted = True
 
         if arm_client and arm_client.get_state() in [actionlib.GoalStatus.ACTIVE, actionlib.GoalStatus.PENDING]:
             arm_client.cancel_all_goals()
@@ -256,7 +260,10 @@ def postion_adjust(x_pixel, y_pixel):
 
 # === Primitives ===
 def search_head(): # ready
-    global head_aruco_locked, current_marker_id
+    global head_aruco_locked, current_marker_id, interrupted
+
+    if interrupted:
+        return
 
     if current_marker_id is None:
         rospy.logwarn("[MarkerID] current_marker_id is missing.")
@@ -279,7 +286,11 @@ def search_head(): # ready
     detector.search_for_marker(current_marker_id)
 
 def move_to_open(): # TODO: adjust offset
-    global stored_head_aruco
+    global stored_head_aruco, interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Execute move to open")
     
     head_aurco_postion = np.array([head_aruco_array[0], head_aruco_array[1], 0.0])
@@ -294,7 +305,12 @@ def move_to_open(): # TODO: adjust offset
     # ! execution
     move_arm_cartesian(goal.tolist(), [0, 0, pi/2])
 
-def move_to_close(): # TODO
+def move_to_close(): # TODO: check if the gripper cam is able to detect
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Execute move to close")
     head_aurco_postion = np.array([head_aruco_array[0], head_aruco_array[1], 0.0])
     if head_aruco_array[0]>0.8:
@@ -308,7 +324,11 @@ def move_to_close(): # TODO
 
 
 def detect_aruco_with_gripper_camera(): # TODO: adjust parameters; if one loop can't find, stop and wait for manual input
-    global gripper_aruco_locked, stored_head_aruco, error_pub, intervene_pub
+    global gripper_aruco_locked, stored_head_aruco, error_pub, intervene_pub, interrupted
+
+    if interrupted:
+        return
+    
     gripper_aruco_locked = False
 
     if current_joint_positions is None:
@@ -405,6 +425,11 @@ def close_gripper(): # ready
     rospy.loginfo("Finish close gripper")
 
 def send_gripper_goal(positions): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     goal = FollowJointTrajectoryGoal()
     traj = JointTrajectory()
     traj.joint_names = ['gripper_left_finger_joint', 'gripper_right_finger_joint']
@@ -419,6 +444,11 @@ def send_gripper_goal(positions): # ready
     gripper_client.wait_for_result()
 
 def rotate_head(pan, tilt, duration=2.0):
+    global interrupted
+
+    if interrupted:
+        return
+    
     goal = FollowJointTrajectoryGoal()
     trajectory = JointTrajectory()
     trajectory.joint_names = ['head_1_joint', 'head_2_joint']
@@ -433,6 +463,11 @@ def rotate_head(pan, tilt, duration=2.0):
     head_client.wait_for_result()
 
 def move_arm(direction, step=0.03): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     if current_joint_positions is None:
         rospy.logwarn("No current joint positions. Cannot move arm.")
         return
@@ -507,6 +542,11 @@ def get_current_arm_position(): # ready
     rospy.loginfo("get_current_arm_position primitive.")
 
 def go_home_position(): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Reseting to home position")
     home_joint_list = [0.07, 0.7, -1.3, 1.68, 0.72, -1.29, 0.16]
 
@@ -518,6 +558,11 @@ def go_home_position(): # ready
     rospy.sleep(0.1)
 
 def move_away_clear_view(): # TODO: avoid arm blocking the view
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("move to clear view position")
     home_joint_list = [0.42, 0.9, -1.24, 1.49, 0.95, -1.39, 0.26]
 
@@ -578,7 +623,7 @@ def run():
     execution_status_pub.publish("waiting")
 
     # open_gripper()
-    # go_home_position()
+    go_home_position()
     
 
 
