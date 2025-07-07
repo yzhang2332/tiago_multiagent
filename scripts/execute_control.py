@@ -34,6 +34,7 @@ current_head_position = [0, 0]
 head_aruco_array = np.zeros(3)
 gripper_aruco_array = np.zeros(3)
 current_marker_id = None
+last_primitives = []
 
 # IK solvers
 ik_solver_pos = None
@@ -90,6 +91,8 @@ def move_arm_joints(end_joint_list, duration):
     rospy.loginfo("Arm execution finished")
 
 def move_arm_cartesian(goal_position, goal_orientation, duration=3.5):
+    global error_pub, intervene_pub
+
     desired_position = Vector(*goal_position)
     desired_orientation = Rotation.RPY(*goal_orientation)
     desired_frame = Frame(desired_orientation, desired_position)
@@ -100,10 +103,26 @@ def move_arm_cartesian(goal_position, goal_orientation, duration=3.5):
         move_arm_joints([desired_joint_positions[i] for i in range(number_of_joints)], duration)
     else:
         rospy.logerr("IK solution not found.")
-        # ! Error solution 1
-        go_home_position()
-        raise RuntimeError("Gripper ArUco detection failed. Aborting plan.")
-        # ! Error solution 2: TTS "I need help"
+        error_pub.publish("ik not found")
+        intervene_pub.publish("need_help")
+
+        if last_primitives[-2:] in [["search_head", "move_to_open"], ["search_head", "move_to_close"]]:
+            rospy.logwarn("Re-running previous primitives due to IK failure.")
+            for p in last_primitives[-2:]:
+                func = globals().get(p)
+                if callable(func):
+                    func()
+            # retry the IK again
+            move_arm_cartesian(goal_position, goal_orientation, duration)
+        else:
+            # fallback if sequence doesn't match
+            intervene_pub.publish("need_takeover")
+            go_home_position()
+
+        # # ! Error solution 1
+        # go_home_position()
+        # raise RuntimeError("Gripper ArUco detection failed. Aborting plan.")
+        # # ! Error solution 2: TTS "I need help"
 
 # === Subscribers ===
 def joint_state_callback(msg):
@@ -135,10 +154,7 @@ def head_aruco_pose_callback(msg):
         rospy.logdebug("[Callback] ArUco already locked, ignoring.")
 
 def gripper_aruco_pose_callback(msg):
-    global gripper_aruco_array, gripper_aruco_locked, gripper_aruco_miss
-    if gripper_aruco_miss:
-        rospy.logdebug("[Callback] Detection previously marked as failed. Ignoring message.")
-        return
+    global gripper_aruco_array, gripper_aruco_locked
     
     rospy.loginfo(f"[Callback] Got pose from gripper_cam: {msg.point}")
     if not gripper_aruco_locked:
@@ -148,9 +164,25 @@ def gripper_aruco_pose_callback(msg):
     else:
         rospy.logdebug("[Callback] ArUco already locked, ignoring.")
 
+def patch_callback(msg):
+    global current_marker_id
+
+    if current_marker_id is not None:
+        return  # Do not overwrite a valid ID from instruction_callback
+
+    try:
+        data = json.loads(msg.data)
+        patched_id = data.get("marker_id")
+        if patched_id is not None:
+            current_marker_id = patched_id
+            rospy.loginfo(f"[MarkerID] Patched marker ID received: {current_marker_id}")
+    except Exception as e:
+        rospy.logerr(f"[MarkerID] Failed to parse /aruco_patch message: {e}")
+
+
 # === Instruction Handling ===
 def instruction_callback(msg):
-    global current_marker_id, plan_executing, execution_status_pub
+    global current_marker_id, plan_executing, execution_status_pub, error_pub, intervene_pub
 
     with plan_lock:
         if plan_executing:
@@ -169,17 +201,26 @@ def instruction_callback(msg):
                 func = globals().get(primitive)
                 if callable(func):
                     rospy.loginfo(f"Executing: {primitive}")
+                    last_primitives.append(primitive)
+                    last_primitives[:] = last_primitives[-5:]
                     try:
                         func()
                     except Exception as e:
                         rospy.logerr(f"Primitive '{primitive}' failed: {e}")
                         execution_status_pub.publish("failed")
-                        break
+                        intervene_pub.publish("need_takeover")
+                        error_pub.publish("primitive throws")
+                        return
                 else:
                     rospy.logwarn(f"Unknown primitive: {primitive}")
+                    intervene_pub.publish("need_takeover")
+                    error_pub.publish("unknown primitive")
+                    return
     except Exception as e:
         rospy.logerr(f"Error in instruction_callback: {e}")
         execution_status_pub.publish("failed")
+        intervene_pub.publish("need_takeover")
+        error_pub.publish("Instruction malformed")
     finally:
         with plan_lock:
             plan_executing = False
@@ -188,6 +229,25 @@ def instruction_callback(msg):
             rospy.sleep(1.0)
             execution_status_pub.publish("waiting")
 
+def wizard_callback(msg):
+    global plan_executing, execution_status_pub
+
+    if msg.data.strip().lower() == "emergency_stop":
+        rospy.logwarn("[EMERGENCY] Emergency stop received. Preempting all motions.")
+
+        if arm_client and arm_client.get_state() in [actionlib.GoalStatus.ACTIVE, actionlib.GoalStatus.PENDING]:
+            arm_client.cancel_all_goals()
+        if gripper_client and gripper_client.get_state() in [actionlib.GoalStatus.ACTIVE, actionlib.GoalStatus.PENDING]:
+            gripper_client.cancel_all_goals()
+        if head_client and head_client.get_state() in [actionlib.GoalStatus.ACTIVE, actionlib.GoalStatus.PENDING]:
+            head_client.cancel_all_goals()
+
+        with plan_lock:
+            plan_executing = False
+        
+        if execution_status_pub:
+            execution_status_pub.publish("stopped")
+            
 # === Utility ===
 def postion_adjust(x_pixel, y_pixel):
     x_diff = (200 - x_pixel) * 0.013 / 82
@@ -196,9 +256,18 @@ def postion_adjust(x_pixel, y_pixel):
 
 # === Primitives ===
 def search_head(): # ready
-    global head_aruco_locked
-    head_aruco_locked = False
+    global head_aruco_locked, current_marker_id
 
+    if current_marker_id is None:
+        rospy.logwarn("[MarkerID] current_marker_id is missing.")
+        intervene_pub.publish("need_takeover")
+        error_pub.publish("marker ID missing")
+        rospy.loginfo("[MarkerID] Waiting for marker ID on /aruco_patch...")
+
+        while current_marker_id is None and not rospy.is_shutdown():
+            rospy.sleep(0.5)
+
+    head_aruco_locked = False
     rospy.sleep(0.1) 
     detector = HeadCamArucoDetector()
 
@@ -238,10 +307,9 @@ def move_to_close(): # TODO
     move_arm_cartesian(goal.tolist(), [0, 0, pi/2])
 
 
-def detect_aruco_with_gripper_camera(): # TODO: adjust parameters
-    global gripper_aruco_locked, gripper_aruco_miss, stored_head_aruco
+def detect_aruco_with_gripper_camera(): # TODO: adjust parameters; if one loop can't find, stop and wait for manual input
+    global gripper_aruco_locked, stored_head_aruco, error_pub, intervene_pub
     gripper_aruco_locked = False
-    gripper_aruco_miss = False
 
     if current_joint_positions is None:
         rospy.logerr("No joint positions available. Cannot compute pose.")
@@ -281,21 +349,20 @@ def detect_aruco_with_gripper_camera(): # TODO: adjust parameters
     attempt = 0
     max_attempts = 4
 
-    while not gripper_aruco_locked and not gripper_aruco_miss and attempt < max_attempts:
+    while not gripper_aruco_locked and attempt < max_attempts:
         direction = search_directions[attempt % len(search_directions)]
         step = search_steps[attempt % len(search_directions)]
         move_arm(direction, step)
         rospy.sleep(0.5)
         attempt += 1
 
-    if not gripper_aruco_locked and not gripper_aruco_miss:
+    if not gripper_aruco_locked:
         rospy.logerr("Gripper ArUco marker not detected after search attempts.")
-        gripper_aruco_miss=True
-        # return
-        # ! Error solution 1
-        go_home_position()
-        raise RuntimeError("Gripper ArUco detection failed. Aborting plan.")
-        # ! Error solution 2: TTS "I need help"
+        intervene_pub.publish("need_help")
+        error_pub.publish("gripper not detected")
+        while not gripper_aruco_locked:
+            rospy.sleep(0.5)
+        rospy.loginfo("Gripper ArUco pose received after waiting.")
 
     rospy.loginfo("Gripper ArUco pose received.")
 
@@ -461,7 +528,7 @@ def move_away_clear_view(): # TODO: avoid arm blocking the view
 
 # === Init & Main ===
 def run():
-    global ik_solver_pos, fk_solver, arm_pub, gripper_client, head_client, arm_client, current_joint_positions, execution_status_pub
+    global ik_solver_pos, fk_solver, arm_pub, gripper_client, head_client, arm_client, current_joint_positions, execution_status_pub, error_pub, intervene_pub
 
     # # ! for gazebo only: Wait for simulated time to start running
     # rospy.loginfo("Waiting for simulated time to be active...")
@@ -486,9 +553,13 @@ def run():
     rospy.Subscriber('/head_cam_aruco_pose', PointStamped, head_aruco_pose_callback)
     rospy.Subscriber('/gripper_cam_aruco_pose', PointStamped, gripper_aruco_pose_callback)
     rospy.Subscriber('/action_agent/execute_sequence', String, instruction_callback)
+    rospy.Subscriber('/wizard_intervene', String, wizard_callback)
+    rospy.Subscriber("/aruco_patch", String, patch_callback)
 
     # arm_pub = rospy.Publisher('/arm_controller/command', JointTrajectory, queue_size=10)
     execution_status_pub = rospy.Publisher('/execution_status', String, queue_size=10)
+    error_pub = rospy.Publisher('/error_log', String, queue_size=1)
+    intervene_pub = rospy.Publisher('/wizard_intervene', String, queue_size=1)
 
     gripper_client = actionlib.SimpleActionClient('/parallel_gripper_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
     gripper_client.wait_for_server()
