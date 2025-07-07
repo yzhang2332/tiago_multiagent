@@ -11,12 +11,11 @@ class ExpressionLoopPublisher(Node):
 
         self.expressions = [
             ('surprised', 0.0, 0.0),
-            ('talking', 0.0, 0.0), #not available
             ('neutral', 0.0, 0.0)
         ]
 
         self.index = 0
-        self.timer = self.create_timer(0.5, self.publish_expression)  # 1 Hz
+        self.timer = self.create_timer(0.3, self.publish_expression)  # 1 Hz
 
     def publish_expression(self):
         label, valence, arousal = self.expressions[self.index]
