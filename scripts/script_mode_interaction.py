@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import rospy
-import time
 from std_msgs.msg import String
 
 class ScriptedInteraction:
@@ -23,24 +22,20 @@ class ScriptedInteraction:
         self.script_index = 0
         self.phase = "idle"
         self.in_script = False
-        self.last_action_time = time.time()
-        self.timeout_duration = 12
-
-        rospy.Timer(rospy.Duration(1.0), self.check_timeout)
 
         self.script = [
             ("instructor", "high_explicit_correct_1_1", False, None),
-            ("tiago", "Want me to hold the test tube for you?", True, None),
+            ("tiago", "Want me to hold the test tube for you?", False, None),
             ("instructor", "high_explicit_correct_1_2", False, None),
-            ("tiago", "Sure.", False, "hold_test_tube"),
+            ("tiago", "Sure.", True, "hold_test_tube"),
             ("instructor", "high_explicit_correct_2_1", False, None),
-            ("tiago", "Want me to shake the test tube?", True, None),
+            ("tiago", "Want me to shake the test tube?", False, None),
             ("instructor", "high_explicit_correct_2_2", False, None),
-            ("tiago", "Got it.", False, "shake_test_tube"),
+            ("tiago", "Got it.", True, "shake_test_tube"),
             ("instructor", "high_explicit_correct_3_1", False, None),
-            ("tiago", "Want me to gently shake the test tube again?", True, None),
+            ("tiago", "Want me to gently shake the test tube again?", False, None),
             ("instructor", "high_explicit_correct_3_2", False, None),
-            ("tiago", "(Shake the test tube again)", True, "shake_test_tube")
+            ("tiago", "(Shake the test tube again)", True, "shake_test_tube_2")
         ]
 
         rospy.loginfo("[script_mode] ScriptedInteraction node initialised and waiting for start signal.")
@@ -70,13 +65,12 @@ class ScriptedInteraction:
             self.status_feedback_pub.publish("complete")
             self.in_script = False
             self.phase = "idle"
-            rospy.sleep(1.0)
+            rospy.sleep(0.5)
             self.listen_pub.publish("start_listen")
             return
 
         role, text, is_action, action_id = self.script[self.script_index]
         self.status_pub.publish("received")
-        self.last_action_time = time.time()
 
         rospy.loginfo(f"[script_mode] Step {self.script_index} | Role: {role} | Phase: {self.phase}")
 
@@ -95,14 +89,40 @@ class ScriptedInteraction:
 
             if is_action and action_id:
                 rospy.loginfo(f"[script_mode] Tiago action: {action_id}")
-                self.action_pub.publish(action_id)
+                if action_id == "hold_test_tube":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "pickup", "marker_id": 10, "sequence": ['
+                        '"search_head", "get_current_arm_position", "open_gripper", "move_to_open", '
+                        '"detect_aruco_with_gripper_camera", "move_down", "close_gripper"]}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+
+                elif action_id == "shake_test_tube":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "shake_test_tube", "marker_id":, "sequence": ['
+                        '"shake_test_tube"]}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                
+                elif action_id == "shake_test_tube_2":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "shake_test_tube", "marker_id":, "sequence": ['
+                        '"shake_test_tube"]}, '
+                        '{"action": "release", "marker_id":, "sequence": ['
+                        '"open_gripper", "move_up", "go_home_position"]}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+
                 self.phase = "waiting_tiago_done"
-                self.last_action_time = time.time()
-            else:
-                rospy.sleep(0.5)
-                self.script_index += 1
-                self.phase = "ready"
-                self.advance_script()
 
     def instructor_feedback_callback(self, msg):
         if self.phase == "waiting_instructor_done" and msg.data.strip().lower() == "finished":
@@ -118,15 +138,6 @@ class ScriptedInteraction:
             self.phase = "ready"
             self.script_index += 1
             rospy.sleep(0.5)
-            self.advance_script()
-
-    def check_timeout(self, event):
-        if not self.in_script or self.phase not in ["waiting_tiago_done"]:
-            return
-        if time.time() - self.last_action_time > self.timeout_duration:
-            rospy.logerr(f"[script_mode] Timeout at step {self.script_index}. Advancing.")
-            self.phase = "ready"
-            self.script_index += 1
             self.advance_script()
 
 if __name__ == "__main__":

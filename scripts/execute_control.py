@@ -232,8 +232,8 @@ def instruction_callback(msg):
 def wizard_callback(msg):
     global plan_executing, execution_status_pub
 
-    if msg.data.strip().lower() == "emergency_stop":
-        rospy.logwarn("[EMERGENCY] Emergency stop received. Preempting all motions.")
+    if msg.data.strip().lower() == "takeover":
+        rospy.logwarn("[TAKEOVER] Takeover received. Preempting all motions.")
 
         if arm_client and arm_client.get_state() in [actionlib.GoalStatus.ACTIVE, actionlib.GoalStatus.PENDING]:
             arm_client.cancel_all_goals()
@@ -246,7 +246,7 @@ def wizard_callback(msg):
             plan_executing = False
         
         if execution_status_pub:
-            execution_status_pub.publish("stopped")
+            execution_status_pub.publish("takeovered")
             
 # === Utility ===
 def postion_adjust(x_pixel, y_pixel):

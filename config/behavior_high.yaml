@@ -67,3 +67,6 @@ primitives:
   
   move_away_clear_view:
     description: "Move arm away to clear robot's camera's view."
+  
+  shake_test_tube:
+    description: "Shake test tube."

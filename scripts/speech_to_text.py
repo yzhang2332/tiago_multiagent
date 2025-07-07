@@ -39,7 +39,7 @@ class VoiceRecognitionServer:
         self.stream = None
         self.device_index = None
 
-        self.listen_flag = True
+        self.listen_flag = False
         self.listen_subscriber = rospy.Subscriber("/listen_signal", String, self.listen_callback)
         
     
