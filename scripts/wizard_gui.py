@@ -131,11 +131,15 @@ class SignalCoordinatorGUI:
         self.pub_intervene = rospy.Publisher("/wizard_intervene", String, queue_size=1)
         self.pub_execute = rospy.Publisher("/wizard_agent/execute_sequence", String, queue_size=1)
         self.pub_patch = rospy.Publisher("/aruco_patch", String, queue_size=1)
+        self.pub_reference_patch = rospy.Publisher("/reference_patch", String, queue_size=1)
 
         self.latest_msgs = {}
         self.labels = {}
-        self.selected_marker_id = None
         self.selected_primitives = []
+        self.selected_marker_names = []
+        self.selected_marker_ids = []
+
+
 
         self.sections = {
             "Wizard Agent Summary": ["/wizard_agent/summary"],
@@ -156,6 +160,7 @@ class SignalCoordinatorGUI:
                 "/execution_status"  # moved below
             ],
             "System Interventions": [
+                "/reference_patch",
                 "/wizard_intervene",
                 "/error_log"
             ]
@@ -266,11 +271,21 @@ class SignalCoordinatorGUI:
             btn.pack(fill="x", pady=1)
             self.marker_buttons.append((btn, mid))
 
-        # --- Update Button ---
+        # --- Update & Verbal Patch Buttons Side by Side ---
+        button_row = tk.Frame(self.right_frame)
+        button_row.pack(pady=(12, 8), fill="x")
+
         tk.Button(
-            self.right_frame, text="Update & Send", bg="#5cb85c", fg="white",
-            font=("Helvetica", 12, "bold"), command=self.update_and_takeover
-        ).pack(pady=(12, 4), fill="x")
+            button_row, text="Update & Send", bg="#5cb85c", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.update_and_takeover,
+            width=18
+        ).pack(side="left", padx=5, fill="x", expand=True)
+
+        tk.Button(
+            button_row, text="Verbal Patch", bg="#428bca", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.send_verbal_patch,
+            width=18
+        ).pack(side="left", padx=5, fill="x", expand=True)
 
         # --- Stop Takeover Button ---
         tk.Button(
@@ -293,13 +308,22 @@ class SignalCoordinatorGUI:
                 btn.config(relief="raised", font=("Helvetica", 11), bg="#ddffee")
 
     def select_marker(self, marker_id):
-        self.selected_marker_id = marker_id
+        if marker_id not in self.selected_marker_ids:
+            self.selected_marker_ids.append(marker_id)
+
+            name = next((marker["name"] for marker in aruco_data["markers"] if marker["id"] == marker_id), str(marker_id))
+            self.selected_marker_names.append(name)
+
+        # Highlight all selected, emphasize the last one
         for btn, mid in self.marker_buttons:
-            # btn.config(relief="sunken" if mid == marker_id else "raised")
-            if mid == marker_id:
-                btn.config(relief="sunken", font=("Helvetica", 11, "bold"), bg="#aaccff")
+            if mid in self.selected_marker_ids:
+                if mid == self.selected_marker_ids[-1]:  # last clicked
+                    btn.config(relief="sunken", font=("Helvetica", 11, "bold"), bg="#3366cc", fg="white")
+                else:
+                    btn.config(relief="sunken", font=("Helvetica", 11), bg="#aaccff", fg="black")
             else:
-                btn.config(relief="raised", font=("Helvetica", 11), bg="#e0e0ff")
+                btn.config(relief="raised", font=("Helvetica", 11), bg="#e0e0ff", fg="black")
+
 
     def send_takeover(self):
         self.pub_intervene.publish("takeover")
@@ -308,12 +332,13 @@ class SignalCoordinatorGUI:
         pub = rospy.Publisher("/execution_status", String, queue_size=1)
         rospy.sleep(0.1)
         pub.publish("finished")
-
+        self.pub_intervene.publish("stop_takeover")
 
     def update_and_takeover(self):
         self.send_takeover()
         if self.selected_primitives:
             plan = []
+            last_marker_id = self.selected_marker_ids[-1] if self.selected_marker_ids else None
             for p in self.selected_primitives:
                 if p in META_ACTIONS:
                     sequence = behavior_data["meta_actions"][p]["sequence"]
@@ -321,22 +346,34 @@ class SignalCoordinatorGUI:
                     sequence = [p]
                 plan.append({
                     "action": p,
-                    "marker_id": self.selected_marker_id,
+                    "marker_id": last_marker_id,
                     "sequence": sequence
                 })
             msg = String(data=json.dumps({"plan": plan}))
             self.pub_execute.publish(msg)
-        elif self.selected_marker_id is not None:
-            msg = String(data=json.dumps({"marker_id": self.selected_marker_id}))
+        elif self.selected_marker_ids:
+            last_marker_id = self.selected_marker_ids[-1]
+            msg = String(data=json.dumps({"marker_id": last_marker_id}))
             self.pub_patch.publish(msg)
 
         # Clear selection
         self.selected_primitives.clear()
-        self.selected_marker_id = None
-        for btn, _ in self.primitive_buttons:
-            btn.config(relief="raised")
+        self.selected_marker_ids.clear()
+        self.selected_marker_names.clear()
         for btn, _ in self.marker_buttons:
-            btn.config(relief="raised")
+            btn.config(relief="raised", font=("Helvetica", 11), bg="#e0e0ff", fg="black")
+    
+    def send_verbal_patch(self):
+        if self.selected_marker_names:
+            patch_msg = String(data=json.dumps({"reference": self.selected_marker_names}))
+            self.pub_reference_patch.publish(patch_msg)
+            self.selected_marker_names = []
+
+            # Reset after sending
+            self.selected_marker_ids.clear()
+            self.selected_marker_names.clear()
+            for btn, _ in self.marker_buttons:
+                btn.config(relief="raised", font=("Helvetica", 11), bg="#e0e0ff", fg="black")
 
     def bind_ros(self):
         for section_topics in self.sections.values():
