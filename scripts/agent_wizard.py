@@ -26,6 +26,13 @@ class SignalCoordinator:
         self.script_agent_status = ""
         self.tts_status = ""
         self.action_agent_status = ""
+        self.wizard_intervene = ""
+
+        self.completed_actions = set()
+        self.script_triggered = False
+        self.script_mode_status = ""
+        self.script_trigger_pub = rospy.Publisher("/script_mode_status", String, queue_size=1)
+
 
         self.listen_pub = rospy.Publisher("/listen_signal", String, queue_size=10)
 
@@ -34,12 +41,37 @@ class SignalCoordinator:
         rospy.Subscriber("/execution_status", String, self.handle_execution_status)
         rospy.Subscriber("/script_agent_status", String, self.handle_script_agent_status)
         rospy.Subscriber("/action_agent_status", String, self.handle_action_agent_status)
+        rospy.Subscriber("/wizard_intervene", String, self.handle_wizard_intervene)
+        rospy.Subscriber("/script_mode_status", String, self.handle_script_mode)
 
         rospy.loginfo("SignalCoordinator (rule-based) started.")
+
+    def handle_script_mode(self, msg):
+        self.script_mode_status = msg.data.strip().lower()
+        # rospy.loginfo(f"[script_mode_status] {self.script_mode_status}")
+        if self.script_mode_status == "start_head":
+            rospy.loginfo("[Coordinator] Starting scripted Instructor–Tiago flow.")
+            rospy.sleep(1)  # Allow time for other statuses to update
+            self.completed_actions.clear()
+            self.script_triggered = True
+        self.evaluate_conditions()
+
+    def handle_wizard_intervene(self, msg):
+        self.wizard_intervene = msg.data.strip().lower()
+        # rospy.loginfo(f"[wizard_intervene] {self.wizard_intervene}")
+        self.evaluate_conditions()
 
     def handle_action_instruction(self, msg):
         self.action_instruction = msg.data.strip()
         # rospy.loginfo(f"[action_instruction] {self.action_instruction}")
+
+        if "tube" in self.action_instruction and "place" in self.action_instruction:
+            self.completed_actions.add("tube")
+            rospy.loginfo("[Coordinator] Completed action: tube")
+        elif "30" in self.action_instruction and "powder" in self.action_instruction and "place" in self.action_instruction:
+            self.completed_actions.add("powder")
+            rospy.loginfo("[Coordinator] Completed action: powder")
+    
         self.evaluate_conditions()
 
     def handle_script_agent_status(self, msg):
@@ -65,16 +97,30 @@ class SignalCoordinator:
     def evaluate_conditions(self):
         rospy.sleep(0.1)  # Allow all statuses to update
 
-        if all(s not in ("received", "failed", "takeovered") for s in [
+        if all(s not in ("received", "failed", "takeover", "need_help", "need_takeover", "start_head", "in_progress", "ready_head") for s in [
             self.script_agent_status,
             self.tts_status,
             self.action_agent_status,
-            self.execution_status]):
+            self.execution_status,
+            self.wizard_intervene,
+            self.script_mode_status]):
             # rospy.loginfo("SignalCoordinator: No agent is processing. Starting listener.")
             self.send_listen_signal("start_listen")
         else:
             # rospy.loginfo("SignalCoordinator: Agents are busy. Stopping listener.")
             self.send_listen_signal("stop_listen")
+        
+        # Trigger script if both tube and powder actions completed and execution finished
+        if not self.script_triggered and {"tube", "powder"}.issubset(self.completed_actions):
+            
+            if self.execution_status == "finished":
+                rospy.loginfo("[Coordinator] Triggering scripted Instructor–Tiago flow.")
+                self.script_trigger_pub.publish("start_head")
+                self.completed_actions.clear()  # Optional: reset if this should only run once
+                self.script_triggered = True
+            else:
+                self.script_trigger_pub.publish("ready_head")
+
 
     def send_listen_signal(self, signal: str):
         rospy.sleep(0.2)
@@ -105,10 +151,15 @@ class WizardAgent:
         self.subscribe_topics([
             "/received_utterance",
             "/script_agent/verbal_response",
+            "/reference_patch",
             "/script_agent/action_instruction",
             "/action_agent/execute_sequence",
+            "wizard_agent/execute_sequence",
             # "/tts_status",
-            "/execution_status"
+            "/execution_status",
+            "/wizard_intervene",
+            "/error_log",
+            "/script_mode_status"
             # ,
             # "/script_agent_status",
             # "/action_agent_status"
@@ -120,11 +171,8 @@ class WizardAgent:
         self.processor_thread = Thread(target=self.process_loop)
         self.processor_thread.start()
 
-        self.completed_actions = set()
         self.latest_execution_status = "waiting"
-        self.script_trigger_pub = rospy.Publisher("/start_script_mode", String, queue_size=1)
-
-
+        
         rospy.loginfo("WizardAgent (LLM-based) started.")
 
     def load_context(self):
@@ -171,15 +219,6 @@ class WizardAgent:
         if topic == "/execution_status":
             self.latest_execution_status = data.lower()
 
-        # Track completed action instructions
-        if topic == "/script_agent/action_instruction":
-            if "tube" in data:
-                self.completed_actions.add("tube")
-                rospy.loginfo("Added 'pick_test_tube'")
-            elif "powder" in data:
-                self.completed_actions.add("powder")
-                rospy.loginfo("Added 'pick_powder_container'")
-
 
     def process_loop(self):
         rate = rospy.Rate(2)
@@ -190,17 +229,10 @@ class WizardAgent:
                     decision = self.query_agent(msgs)
                     self.publish_decision(decision)
 
-                    if self.should_trigger_script():
-                        rospy.loginfo("[WizardAgent] Triggering scripted Instructor–Tiago flow.")
-                        self.script_trigger_pub.publish("start")
             except Exception as e:
                 rospy.logwarn(f"WizardAgent error: {e}")
             rate.sleep()
     
-    def should_trigger_script(self):
-        required = {"tube", "powder"}
-        return required.issubset(self.completed_actions) and self.latest_execution_status == "finished"
-
     def drain_messages(self):
         msgs = []
         while not self.message_queue.empty():

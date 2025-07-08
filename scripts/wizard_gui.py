@@ -32,6 +32,7 @@ COMMANDS = {
     "Start execution": ["python", "execute_control.py"],
     "Run pro head": ["bash", "run_pro_head.sh"],
     "Start script mode": ["python", "script_mode_interaction.py"],
+    "Start ros1 tcp bridge": ["python", "ros1_tcp_bridge.py"],
     "Start phone display (app)": ["python", "phone_display/app.py"],
     "Start phone display (ros_client)": ["python", "phone_display/ros_client.py"],
     "Record rosbag": ["python", "record_rosbag.py"],
@@ -44,6 +45,19 @@ status_labels = {}
 selection = {"Condition": [], "Task": None}
 
 def run_command(label, cmd):
+    # If already running, terminate it
+    if label in process_refs and process_refs[label] and process_refs[label].poll() is None:
+        print(f"[GUI] Terminating active process: {label}")
+        process_refs[label].terminate()
+        try:
+            process_refs[label].wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process_refs[label].kill()
+        thread_status[label] = "inactive"
+        update_status(label)
+        return
+
+    # Otherwise, start the process
     def target():
         thread_status[label] = "active"
         update_status(label)
@@ -132,6 +146,10 @@ class SignalCoordinatorGUI:
         self.pub_execute = rospy.Publisher("/wizard_agent/execute_sequence", String, queue_size=1)
         self.pub_patch = rospy.Publisher("/aruco_patch", String, queue_size=1)
         self.pub_reference_patch = rospy.Publisher("/reference_patch", String, queue_size=1)
+        self.pub_listen = rospy.Publisher("/listen_signal", String, queue_size=1)
+        self.pub_script_mode_status = rospy.Publisher("/script_mode_status", String, queue_size=1)
+
+
 
         self.latest_msgs = {}
         self.labels = {}
@@ -152,7 +170,8 @@ class SignalCoordinatorGUI:
             ],
             "Agent Status": [
                 "/script_agent_status",
-                "/action_agent_status"
+                "/action_agent_status",
+                "/script_mode_status"
             ],
             "Robot Execution / Control": [
                 "/action_agent/execute_sequence",
@@ -234,6 +253,20 @@ class SignalCoordinatorGUI:
                 self.labels[topic] = label
 
     def add_wizard_controls(self):
+        # --- Start/Stop Listening Buttons ---
+        listen_row = tk.Frame(self.right_frame)
+        listen_row.pack(pady=(4, 4), fill="x")
+
+        tk.Button(
+            listen_row, text="Start Listening", bg="#5bc0de", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.send_start_listening
+        ).pack(side="left", padx=5, fill="x", expand=True)
+
+        tk.Button(
+            listen_row, text="Stop Listening", bg="#777777", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.send_stop_listening
+        ).pack(side="left", padx=5, fill="x", expand=True)
+
         # --- Takeover ---
         tk.Button(
             self.right_frame, text="Takeover", bg="#d9534f", fg="white",
@@ -293,6 +326,14 @@ class SignalCoordinatorGUI:
             font=("Helvetica", 12, "bold"), command=self.send_stop_takeover
         ).pack(pady=(0, 12), fill="x")
 
+        # --- Start Head Button ---
+        tk.Button(
+            self.right_frame, text="Start Head", bg="#6f42c1", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.send_start_head
+        ).pack(pady=(0, 12), fill="x")
+
+    def send_start_head(self):
+        self.pub_script_mode_status.publish("start_head")
 
     def toggle_primitive(self, name):
         if name in self.selected_primitives:
@@ -324,6 +365,11 @@ class SignalCoordinatorGUI:
             else:
                 btn.config(relief="raised", font=("Helvetica", 11), bg="#e0e0ff", fg="black")
 
+    def send_start_listening(self):
+        self.pub_listen.publish("start_listen")
+
+    def send_stop_listening(self):
+        self.pub_listen.publish("stop_listen")
 
     def send_takeover(self):
         self.pub_intervene.publish("takeover")

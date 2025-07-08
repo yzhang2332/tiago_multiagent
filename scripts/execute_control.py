@@ -566,7 +566,7 @@ def move_arm(direction, step=0.03): # ready
     # ! execution
     move_arm_cartesian(new_pos, rpy, duration=1.0)
 
-def move_up(step=0.04): # ready
+def move_up(step=0.02): # ready
     rospy.loginfo("Execute move_up primitive.")
     move_arm("up", step)
 
@@ -575,19 +575,19 @@ def move_down(step=0.02): # ready
     move_arm("down", step)
 
 def move_left(step=0.03): # ready
-    rospy.loginfo("Execute move_up primitive.")
+    rospy.loginfo("Execute move_left primitive.")
     move_arm("left", step)
 
 def move_right(step=0.03): # ready
-    rospy.loginfo("Execute move_up primitive.")
+    rospy.loginfo("Execute move_right primitive.")
     move_arm("right", step)
 
 def move_forward(step=0.03): # ready
-    rospy.loginfo("Execute move_up primitive.")
+    rospy.loginfo("Execute move_forward primitive.")
     move_arm("forward", step)
 
 def move_backward(step=0.03): # ready
-    rospy.loginfo("Execute move_up primitive.")
+    rospy.loginfo("Execute move_backward primitive.")
     move_arm("backward", step)
 
 def get_current_arm_position(): # ready
@@ -622,6 +622,42 @@ def move_away_clear_view(): # TODO: avoid arm blocking the view
     move_arm_joints(home_joint_list, 3.0)
     rospy.loginfo("Clear view position reached.")
     rospy.sleep(0.2)
+
+def shake_test_tube():
+    global interrupted
+
+    if interrupted or current_joint_positions is None:
+        return
+
+    rospy.loginfo("Executing shake_test_tube primitive.")
+
+    # Get current joint angles
+    current_angles = [current_joint_positions[i] for i in range(number_of_joints)]
+    base_angle = current_angles[6]  # arm_7_joint
+    shake_angle = 0.5
+
+    # Define sequence of target angles
+    shake_sequence = [
+        base_angle + shake_angle,
+        base_angle - shake_angle,
+        base_angle + shake_angle,
+        base_angle - shake_angle,
+        base_angle  # return to neutral
+    ]
+
+    for idx, target_angle in enumerate(shake_sequence):
+        if interrupted:
+            return
+
+        target_joint_list = current_angles[:]
+        target_joint_list[6] = target_angle
+
+        rospy.loginfo(f"Shake step {idx + 1}: rotating wrist to {target_angle:.2f} rad")
+        move_arm_joints(target_joint_list, duration=0.8)
+        rospy.sleep(0.2)
+
+    rospy.loginfo("Finished shake_test_tube.")
+  
 
 # === Init & Main ===
 def run():
@@ -675,7 +711,7 @@ def run():
     rospy.loginfo("Controllers connected. Waiting for plans.")
     execution_status_pub.publish("waiting")
 
-    # open_gripper()
+    # close_gripper()
     # go_home_position()
     
 
