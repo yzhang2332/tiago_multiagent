@@ -78,7 +78,7 @@ def update_selected_config(config_display):
     config_display.config(text=f"Condition: {selection['Condition']} | Task: {selection['Task']}")
 
 def build_experiment_column(root):
-    leftmost = tk.LabelFrame(root, text="Experiment Config", padx=8, pady=8, width=300)
+    leftmost = tk.LabelFrame(root, text="Experiment Config", padx=8, pady=8, width=350)
     leftmost.pack(side="left", fill="y", padx=5, pady=5)
     leftmost.pack_propagate(False)
 
@@ -124,12 +124,12 @@ class SignalCoordinatorGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Signal Coordinator Monitor")
-        self.root.geometry("1600x1000")
+        self.root.geometry("1800x1400")
         self.root.configure(bg="#f0f0f0")
 
         # ROS publishers
         self.pub_intervene = rospy.Publisher("/wizard_intervene", String, queue_size=1)
-        self.pub_execute = rospy.Publisher("/action_agent/execute_sequence", String, queue_size=1)
+        self.pub_execute = rospy.Publisher("/wizard_agent/execute_sequence", String, queue_size=1)
         self.pub_patch = rospy.Publisher("/aruco_patch", String, queue_size=1)
 
         self.latest_msgs = {}
@@ -140,6 +140,7 @@ class SignalCoordinatorGUI:
         self.sections = {
             "Wizard Agent Summary": ["/wizard_agent/summary"],
             "Speech and User Interaction": [
+                "/listen_signal",  # moved up
                 "/received_utterance",
                 "/script_agent/verbal_response",
                 "/script_agent/action_instruction",
@@ -147,18 +148,20 @@ class SignalCoordinatorGUI:
             ],
             "Agent Status": [
                 "/script_agent_status",
-                "/action_agent_status",
-                "/execution_status"
+                "/action_agent_status"
             ],
             "Robot Execution / Control": [
                 "/action_agent/execute_sequence",
-                "/listen_signal"
+                "/wizard_agent/execute_sequence",  # new
+                "/execution_status"  # moved below
             ],
             "System Interventions": [
                 "/wizard_intervene",
                 "/error_log"
             ]
         }
+
+        self.message_times = {}
 
         # === Layout: Left | Center | Right ===
         main_frame = tk.Frame(self.root)
@@ -202,7 +205,8 @@ class SignalCoordinatorGUI:
             is_long_text = topic in [
                 "/wizard_agent/summary",
                 "/script_agent/action_instruction",
-                "/action_agent/execute_sequence"
+                "/action_agent/execute_sequence",
+                "/wizard_agent/execute_sequence"
             ]
             font = ("Courier", 11) if is_long_text else ("Helvetica", 12)
             wrap = 840
@@ -265,8 +269,14 @@ class SignalCoordinatorGUI:
         # --- Update Button ---
         tk.Button(
             self.right_frame, text="Update & Send", bg="#5cb85c", fg="white",
-            font=("Helvetica", 12, "bold"), command=self.send_update
-        ).pack(pady=12, fill="x")
+            font=("Helvetica", 12, "bold"), command=self.update_and_takeover
+        ).pack(pady=(12, 4), fill="x")
+
+        # --- Stop Takeover Button ---
+        tk.Button(
+            self.right_frame, text="Stop Takeover", bg="#f0ad4e", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.send_stop_takeover
+        ).pack(pady=(0, 12), fill="x")
 
 
     def toggle_primitive(self, name):
@@ -276,17 +286,32 @@ class SignalCoordinatorGUI:
             self.selected_primitives.append(name)
 
         for btn, pname in self.primitive_buttons:
-            btn.config(relief="sunken" if pname in self.selected_primitives else "raised")
+            # btn.config(relief="sunken" if pname in self.selected_primitives else "raised")
+            if pname in self.selected_primitives:
+                btn.config(relief="sunken", font=("Helvetica", 11, "bold"), bg="#aaffaa")
+            else:
+                btn.config(relief="raised", font=("Helvetica", 11), bg="#ddffee")
 
     def select_marker(self, marker_id):
         self.selected_marker_id = marker_id
         for btn, mid in self.marker_buttons:
-            btn.config(relief="sunken" if mid == marker_id else "raised")
+            # btn.config(relief="sunken" if mid == marker_id else "raised")
+            if mid == marker_id:
+                btn.config(relief="sunken", font=("Helvetica", 11, "bold"), bg="#aaccff")
+            else:
+                btn.config(relief="raised", font=("Helvetica", 11), bg="#e0e0ff")
 
     def send_takeover(self):
         self.pub_intervene.publish("takeover")
+    
+    def send_stop_takeover(self):
+        pub = rospy.Publisher("/execution_status", String, queue_size=1)
+        rospy.sleep(0.1)
+        pub.publish("finished")
 
-    def send_update(self):
+
+    def update_and_takeover(self):
+        self.send_takeover()
         if self.selected_primitives:
             plan = []
             for p in self.selected_primitives:
@@ -321,19 +346,35 @@ class SignalCoordinatorGUI:
     def update_msg(self, topic):
         def callback(msg):
             self.latest_msgs[topic] = msg.data.strip()
+            self.message_times[topic] = rospy.get_time()
         return callback
 
     def refresh_gui(self):
+        now = rospy.get_time()
         for topic, widget in self.labels.items():
-            content = self.latest_msgs[topic]
+            content = self.latest_msgs.get(topic, "")
+            t = self.message_times.get(topic, now)
+            age = now - t
+
             if isinstance(widget, tk.Text):
                 widget.config(state="normal")
                 widget.delete("1.0", tk.END)
                 widget.insert(tk.END, content)
                 widget.config(state="disabled")
             else:
-                widget.config(text=content)
+                # Age-based fading
+                if age > 10:
+                    color = "grey"
+                elif topic in ["/listen_signal", "/execution_status"]:
+                    color = "blue"
+                elif topic in ["/wizard_intervene", "/error_log"]:
+                    color = "red"
+                else:
+                    color = "black"
+                widget.config(text=content, fg=color)
+
         self.root.after(200, self.refresh_gui)
+
 
 
 def ros_thread():
@@ -355,9 +396,9 @@ def shutdown_all():
     # Kill head-mounted system
     print("Running kill_pro_head.bash...")
     try:
-        subprocess.run(["bash", "kill_pro_head.bash"])
+        subprocess.run(["bash", "kill_pro_head.sh"])
     except Exception as e:
-        print(f"Error running kill_pro_head.bash: {e}")
+        print(f"Error running kill_pro_head.sh: {e}")
 
 def on_close():
     shutdown_all()

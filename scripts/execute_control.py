@@ -250,7 +250,57 @@ def wizard_callback(msg):
             plan_executing = False
         
         if execution_status_pub:
-            execution_status_pub.publish("takeovered")
+            execution_status_pub.publish("interrupted")
+
+def wizard_instruction_callback(msg):
+    global current_marker_id, plan_executing, execution_status_pub, error_pub, intervene_pub, interrupted
+
+    rospy.sleep(2)
+    interrupted = False
+    with plan_lock:
+        if plan_executing:
+            rospy.logwarn("Plan already executing. Ignoring new instruction.")
+            return
+        plan_executing = True
+    
+    if execution_status_pub:
+        execution_status_pub.publish("takeover_received")
+
+    try:
+        data = json.loads(msg.data)
+        for step in data.get("plan", []):
+            current_marker_id = step.get("marker_id")
+            for primitive in step.get("sequence", []):
+                func = globals().get(primitive)
+                if callable(func):
+                    rospy.loginfo(f"Executing: {primitive}")
+                    last_primitives.append(primitive)
+                    last_primitives[:] = last_primitives[-5:]
+                    try:
+                        func()
+                    except Exception as e:
+                        rospy.logerr(f"Primitive '{primitive}' failed: {e}")
+                        execution_status_pub.publish("failed")
+                        intervene_pub.publish("need_takeover")
+                        error_pub.publish("primitive throws")
+                        return
+                else:
+                    rospy.logwarn(f"Unknown primitive: {primitive}")
+                    intervene_pub.publish("need_takeover")
+                    error_pub.publish("unknown primitive")
+                    return
+    except Exception as e:
+        rospy.logerr(f"Error in instruction_callback: {e}")
+        execution_status_pub.publish("failed")
+        intervene_pub.publish("need_takeover")
+        error_pub.publish("Instruction malformed")
+    finally:
+        with plan_lock:
+            plan_executing = False
+        if execution_status_pub:
+            execution_status_pub.publish("takeover_finished")
+            rospy.sleep(1.0)
+            execution_status_pub.publish("takeover_waiting")
             
 # === Utility ===
 def postion_adjust(x_pixel, y_pixel):
@@ -380,8 +430,10 @@ def detect_aruco_with_gripper_camera(): # TODO: adjust parameters; if one loop c
         rospy.logerr("Gripper ArUco marker not detected after search attempts.")
         intervene_pub.publish("need_help")
         error_pub.publish("gripper not detected")
-        while not gripper_aruco_locked:
-            rospy.sleep(0.5)
+        while not gripper_aruco_locked and not rospy.is_shutdown() and not interrupted:
+            rospy.loginfo("Re-launching OneShotArucoDetector for manual detection...")
+            OneShotArucoDetector(target_marker_id=current_marker_id, auto_shutdown=False, start_remote=False)
+            rospy.sleep(1.0)
         rospy.loginfo("Gripper ArUco pose received after waiting.")
 
     rospy.loginfo("Gripper ArUco pose received.")
@@ -598,6 +650,7 @@ def run():
     rospy.Subscriber('/head_cam_aruco_pose', PointStamped, head_aruco_pose_callback)
     rospy.Subscriber('/gripper_cam_aruco_pose', PointStamped, gripper_aruco_pose_callback)
     rospy.Subscriber('/action_agent/execute_sequence', String, instruction_callback)
+    rospy.Subscriber('/wizard_agent/execute_sequence', String, wizard_instruction_callback)
     rospy.Subscriber('/wizard_intervene', String, wizard_callback)
     rospy.Subscriber("/aruco_patch", String, patch_callback)
 
@@ -623,7 +676,7 @@ def run():
     execution_status_pub.publish("waiting")
 
     # open_gripper()
-    go_home_position()
+    # go_home_position()
     
 
 
