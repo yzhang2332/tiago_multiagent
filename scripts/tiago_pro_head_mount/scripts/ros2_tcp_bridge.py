@@ -51,6 +51,7 @@ class TTSBridge(Node):
             self.get_logger().error(f"TTS Error: {result.error_msg}")
         else:
             self.get_logger().info("TTS completed.")
+
         client.send("finished")
 
     def lookup_text(self, msg):

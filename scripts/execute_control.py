@@ -26,6 +26,9 @@ from PyKDL import ChainFkSolverPos_recursive, ChainIkSolverPos_LMA, Frame, Vecto
 from head_cam import HeadCamArucoDetector
 from gripper_cam import OneShotArucoDetector
 
+import argparse
+
+
 # === Globals ===
 joint_names = ["arm_1_joint", "arm_2_joint", "arm_3_joint", "arm_4_joint", "arm_5_joint", "arm_6_joint", "arm_7_joint"]
 current_joint_positions = None

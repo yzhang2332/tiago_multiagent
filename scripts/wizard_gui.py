@@ -21,9 +21,11 @@ META_ACTIONS = list(behavior_data["meta_actions"].keys())
 
 # === Experiment Config Options and Commands ===
 EXPERIMENT_CONFIG = {
-    "Condition": ["explicit", "implicit", "correct", "incorrect"],
-    "Task": ["high", "low"]
+    "Expliciteness": ["explicit", "implicit"],
+    "Interpretation": ["correct", "incorrect"],
+    "Severity": ["high", "low"]
 }
+
 COMMANDS = {
     "Mount pro head": ["bash", "mount_pro_head.sh"],
     "Wizard agent": ["python", "agent_wizard.py"],
@@ -38,11 +40,22 @@ COMMANDS = {
     "Record rosbag": ["python", "record_rosbag.py"],
     "Speech interface": ["python", "speech_to_text.py"]
 }
+
+REQUIRES_CONDITION_ARGS = {
+    "agent_wizard.py",
+    "agent_integrate.py",
+    "script_mode_interaction.py"
+}
+
 thread_status = defaultdict(lambda: "inactive")
 thread_refs = {}
 process_refs = {}
 status_labels = {}
-selection = {"Condition": [], "Task": None}
+selection = {
+    "Expliciteness": None,
+    "Interpretation": None,
+    "Severity": None
+}
 
 def run_command(label, cmd):
     # If already running, terminate it
@@ -62,6 +75,7 @@ def run_command(label, cmd):
         thread_status[label] = "active"
         update_status(label)
         try:
+            rospy.loginfo(f"[RUNNING] {label} → {' '.join(cmd)}")
             proc = subprocess.Popen(cmd)
             process_refs[label] = proc
             proc.wait()
@@ -77,55 +91,74 @@ def update_status(label):
     if label in status_labels:
         status_labels[label].config(text=thread_status[label], fg="green" if thread_status[label] == "active" else "grey")
 
-def toggle_condition(val, config_display):
-    if val in selection["Condition"]:
-        selection["Condition"].remove(val)
-    elif len(selection["Condition"]) < 2:
-        selection["Condition"].append(val)
-    update_selected_config(config_display)
-
-def select_task(val, config_display):
-    selection["Task"] = val
+def select_value(key, value, config_display):
+    selection[key] = value
     update_selected_config(config_display)
 
 def update_selected_config(config_display):
-    config_display.config(text=f"Condition: {selection['Condition']} | Task: {selection['Task']}")
+    config_display.config(
+        text=f"Expliciteness: {selection['Expliciteness'] or '-'} | "
+             f"Interpretation: {selection['Interpretation'] or '-'} | "
+             f"Severity: {selection['Severity'] or '-'}"
+    )
 
 def build_experiment_column(root):
     leftmost = tk.LabelFrame(root, text="Experiment Config", padx=8, pady=8, width=350)
     leftmost.pack(side="left", fill="y", padx=5, pady=5)
     leftmost.pack_propagate(False)
 
-    config_display = tk.Label(leftmost, text="Condition: [] | Task: None", wraplength=240, justify="left")
+    config_display = tk.Label(leftmost, text="", wraplength=240, justify="left")
     config_display.pack(pady=10)
+    update_selected_config(config_display)
 
-    tk.Label(leftmost, text="Select Conditions", font=("Helvetica", 11, "bold")).pack()
-    for cond in EXPERIMENT_CONFIG["Condition"]:
-        b = tk.Button(leftmost, text=cond, width=20, command=lambda v=cond: toggle_condition(v, config_display))
+    # Expliciteness
+    tk.Label(leftmost, text="Select Expliciteness", font=("Helvetica", 11, "bold")).pack()
+    for val in EXPERIMENT_CONFIG["Expliciteness"]:
+        b = tk.Button(leftmost, text=val, width=20,
+                      command=lambda v=val: select_value("Expliciteness", v, config_display))
         b.pack()
 
-    tk.Label(leftmost, text="---").pack(pady=4)
-
-    tk.Label(leftmost, text="Select Task", font=("Helvetica", 11, "bold")).pack()
-    for task in EXPERIMENT_CONFIG["Task"]:
-        b = tk.Button(leftmost, text=task, width=20, command=lambda v=task: select_task(v, config_display))
+    # Interpretation
+    tk.Label(leftmost, text="Select Interpretation", font=("Helvetica", 11, "bold")).pack(pady=(10, 0))
+    for val in EXPERIMENT_CONFIG["Interpretation"]:
+        b = tk.Button(leftmost, text=val, width=20,
+                      command=lambda v=val: select_value("Interpretation", v, config_display))
         b.pack()
 
-    tk.Label(leftmost, text="---").pack(pady=6)
+    # Severity
+    tk.Label(leftmost, text="Select Severity", font=("Helvetica", 11, "bold")).pack(pady=(10, 0))
+    for val in EXPERIMENT_CONFIG["Severity"]:
+        b = tk.Button(leftmost, text=val, width=20,
+                      command=lambda v=val: select_value("Severity", v, config_display))
+        b.pack()
+
+    # Divider
+    tk.Label(leftmost, text="---").pack(pady=8)
 
     tk.Label(leftmost, text="Run Processes", font=("Helvetica", 11, "bold")).pack()
     for label, cmd in COMMANDS.items():
         row = tk.Frame(leftmost)
         row.pack(fill="x", pady=2)
 
-        actual_cmd = cmd.copy()
-        if label == "Start script and action agent":
-            def run_script_action_agent(l=label, c=cmd):
-                args = selection["Condition"] + ([selection["Task"]] if selection["Task"] else [])
-                run_command(l, c + args)
-            btn = tk.Button(row, text=label, width=25, anchor="w", command=run_script_action_agent)
-        else:
-            btn = tk.Button(row, text=label, width=25, anchor="w", command=lambda l=label, c=cmd: run_command(l, c))
+        def make_run_fn(label=label, cmd=cmd):
+            def _run():
+                script = cmd[1] if len(cmd) > 1 and cmd[0] == "python" else None
+
+                if script in REQUIRES_CONDITION_ARGS:
+                    if None in (selection["Expliciteness"], selection["Interpretation"], selection["Severity"]):
+                        print(f"[GUI] Cannot launch '{label}' — missing experiment condition.")
+                        return
+                    args = [
+                        "--expliciteness", selection["Expliciteness"],
+                        "--interpretation", selection["Interpretation"],
+                        "--severity", selection["Severity"]
+                    ]
+                    run_command(label, cmd + args)
+                else:
+                    run_command(label, cmd)
+            return _run
+
+        btn = tk.Button(row, text=label, width=25, anchor="w", command=make_run_fn())
         btn.pack(side="left")
 
         status = tk.Label(row, text=thread_status[label], fg="grey")

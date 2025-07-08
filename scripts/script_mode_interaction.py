@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import rospy
 from std_msgs.msg import String
+import argparse
 
 class ScriptedInteraction:
-    def __init__(self):
+    def __init__(self, expliciteness, interpretation, severity):
         
         self.to_instructor_pub = rospy.Publisher("/ros1_to_tts", String, queue_size=10)
         self.status_feedback_pub = rospy.Publisher("/script_mode_status", String, queue_size=1)
@@ -31,20 +32,24 @@ class ScriptedInteraction:
         rospy.sleep(0.5)
         self.status_feedback_pub.publish("waiting")
 
-        self.script = [
-            ("instructor", "high_explicit_correct_1_1", False, None, True),
-            ("tiago", "Want me to hold the test tube for you?", False, None, False),
-            ("instructor", "high_explicit_correct_1_2", False, None, False),
-            ("tiago", "Sure. I will hold the test tube for you.", True, "hold_test_tube", True),
-            ("instructor", "high_explicit_correct_2_1", False, None, True),
-            ("tiago", "Want me to shake the test tube?", False, None, False),
-            ("instructor", "high_explicit_correct_2_2", False, None, False),
-            ("tiago", "Got it. I'll shake the test tube.", True, "shake_test_tube", True),
-            ("instructor", "high_explicit_correct_3_1", False, None, True),
-            ("tiago", "Want me to shake the test tube again?", False, None, False),
-            ("instructor", "high_explicit_correct_3_2", False, None, False),
-            ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_2", True)
-        ]
+        # Generate script condition string
+        condition_key = f"{severity}_{expliciteness}_{interpretation}"
+
+        if condition_key == "high_explicit_correct":
+            self.script = [
+                ("instructor", "high_explicit_correct_1_1", False, None, True),
+                ("tiago", "Want me to hold the test tube for you?", False, None, False),
+                ("instructor", "high_explicit_correct_1_2", False, None, False),
+                ("tiago", "Sure. I will hold the test tube for you.", True, "hold_test_tube", True),
+                ("instructor", "high_explicit_correct_2_1", False, None, True),
+                ("tiago", "Want me to shake the test tube?", False, None, False),
+                ("instructor", "high_explicit_correct_2_2", False, None, False),
+                ("tiago", "Got it. I'll shake the test tube.", True, "shake_test_tube", True),
+                ("instructor", "high_explicit_correct_3_1", False, None, True),
+                ("tiago", "Want me to shake the test tube again?", False, None, False),
+                ("instructor", "high_explicit_correct_3_2", False, None, False),
+                ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_2", True)
+            ]
 
         rospy.loginfo("[script_mode] ScriptedInteraction node initialised and waiting for start signal.")
 
@@ -209,9 +214,15 @@ class ScriptedInteraction:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--expliciteness", choices=["explicit", "implicit"], required=True)
+    parser.add_argument("--interpretation", choices=["correct", "incorrect"], required=True)
+    parser.add_argument("--severity", choices=["high", "low"], required=True)
+    args = parser.parse_args()
+
     try:
         rospy.init_node("script_mode_interaction", anonymous=True)
-        ScriptedInteraction()
+        ScriptedInteraction(args.expliciteness, args.interpretation, args.severity)
         rospy.spin()
     except rospy.ROSInterruptException:
         pass

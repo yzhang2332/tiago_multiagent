@@ -9,27 +9,47 @@ import sys
 import os
 import re
 import threading
+import argparse
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from utils.load_config import load_openai_config
 
 class IntegratedAgent:
-    def __init__(self):
+    def __init__(self, expliciteness, interpretation, severity):
         rospy.init_node("integrated_agent", anonymous=True)
+
+        self.expliciteness = expliciteness
+        self.interpretation = interpretation
+        self.severity = severity
 
         cfg = load_openai_config()
         openai.api_key = cfg["openai_api_key"]
-        self.assistant_id = cfg["integrated_agent_id"]
+        # self.assistant_id = cfg["integrated_agent_id"]
+
+        agent_key = f"integrated_agent_{expliciteness}_{interpretation}_{severity}_id" # e.g. integrated_agent_explicit_correct_high_id
+        self.assistant_id = cfg.get(agent_key)
+        if not self.assistant_id:
+            rospy.logerr(f"[integrated_agent] Missing assistant ID for condition: {agent_key}")
+            sys.exit(1)
 
         # Load context configs
-        with open("../config/prompt_high.yaml", "r") as f:
-            self.task_data = yaml.safe_load(f)
-        with open("../config/prompt_explicit_correct_high.yaml", "r") as f:
-            self.prompt_data = yaml.safe_load(f)
-        with open("../config/behavior_high.yaml", "r") as f:
-            self.behavior_data = yaml.safe_load(f)
-        with open("../config/object_aruco_high.yaml", "r") as f:
-            self.aruco_data = yaml.safe_load(f)
+        task_file = f"../config/prompt_{severity}.yaml"
+        prompt_file = f"../config/prompt_integrated_{expliciteness}_{interpretation}_{severity}.yaml"
+        behavior_file = f"../config/behavior_{severity}.yaml"
+        aruco_file = f"../config/object_aruco_{severity}.yaml"
+        
+        try:
+            with open(task_file, "r") as f:
+                self.task_data = yaml.safe_load(f)
+            with open(prompt_file, "r") as f:
+                self.prompt_data = yaml.safe_load(f)
+            with open(behavior_file, "r") as f:
+                self.behavior_data = yaml.safe_load(f)
+            with open(aruco_file, "r") as f:
+                self.aruco_data = yaml.safe_load(f)
+        except FileNotFoundError as e:
+            rospy.logerr(f"[integrated_agent] YAML file not found: {e}")
+            sys.exit(1)
 
         # ROS publishers
         self.status_pub = rospy.Publisher("/script_agent_status", String, queue_size=1)
@@ -151,7 +171,7 @@ You MUST use these references to resolve any placeholders such as <wizard_input>
 
             # Publish outputs
             self.verbal_pub.publish(verbal)
-            self.action_pub.publish(instruction)  # ✅ still publishing here
+            self.action_pub.publish(instruction)  # still publishing here
             if isinstance(plan, list):
                 marker = next((step["marker_id"] for step in plan if "marker_id" in step), None)
                 if marker is not None:
@@ -167,5 +187,12 @@ You MUST use these references to resolve any placeholders such as <wizard_input>
             self.status_pub.publish("failed")
 
 if __name__ == "__main__":
-    IntegratedAgent()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--expliciteness", choices=["explicit", "implicit"], required=True)
+    parser.add_argument("--IntegratedAgent(args.expliciteness, args.intents, args.task)", choices=["correct", "incorrect"], required=True)
+    parser.add_argument("--severity", choices=["high", "low"], required=True)
+
+    args = parser.parse_args()
+
+    IntegratedAgent(args.expliciteness, args.intents, args.severity)
     rospy.spin()

@@ -9,6 +9,7 @@ import yaml
 import json
 import os
 import sys
+import argparse
 
 # Load OpenAI config and client
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -129,22 +130,20 @@ class SignalCoordinator:
 
 ### ---------- LLM-BASED PART (WizardAgent) ---------- ###
 class WizardAgent:
-    def __init__(self):
+    def __init__(self, expliciteness, interpretation, severity):
         # self.listen_pub = rospy.Publisher("/listen_signal", String, queue_size=10)
 
         self.message_queue = Queue()
         self.buffer_lock = Lock()
 
-        # config = load_openai_config()
-        # openai.api_key = config["openai_api_key"]
-        self.assistant_id = cfg["wizard_agent_id"]
+        self.assistant_id = cfg.get(f"wizard_agent_{expliciteness}_{interpretation}_{severity}_id") # example: wizard_agent_explicit_correct_high_id
         if not self.assistant_id:
             rospy.logerr("WizardAgent: assistant_id param missing.")
             rospy.signal_shutdown("Missing assistant ID")
         self.thread = client.beta.threads.create()
 
         # Load and push static task context
-        self.task_data, self.behavior_data, self.aruco_data = self.load_context()
+        self.task_data, self.behavior_data, self.aruco_data = self.load_context(severity)
         self.push_initial_context()
 
         # Subscribe to status/instruction topics
@@ -155,14 +154,10 @@ class WizardAgent:
             "/script_agent/action_instruction",
             "/action_agent/execute_sequence",
             "wizard_agent/execute_sequence",
-            # "/tts_status",
             "/execution_status",
             "/wizard_intervene",
             "/error_log",
             "/script_mode_status"
-            # ,
-            # "/script_agent_status",
-            # "/action_agent_status"
         ])
         
         self.summary_pub = rospy.Publisher("/wizard_agent/summary", String, queue_size=10)
@@ -175,12 +170,12 @@ class WizardAgent:
         
         rospy.loginfo("WizardAgent (LLM-based) started.")
 
-    def load_context(self):
-        with open("../config/high_task.yaml", "r") as f:
+    def load_context(self, severity):
+        with open(f"../config/{severity}_task.yaml", "r") as f:
             task_data = yaml.safe_load(f)
-        with open("../config/behavior_high.yaml", "r") as f:
+        with open(f"../config/behavior_{severity}.yaml", "r") as f:
             behavior_data = yaml.safe_load(f)
-        with open("../config/object_aruco_high.yaml", "r") as f:
+        with open(f"../config/object_aruco_{severity}.yaml", "r") as f:
             aruco_data = yaml.safe_load(f)
         return task_data, behavior_data, aruco_data
 
@@ -274,10 +269,16 @@ class WizardAgent:
 
 ### ---------- MAIN ---------- ###
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--expliciteness", choices=["explicit", "implicit"], required=True)
+    parser.add_argument("--interpretation", choices=["correct", "incorrect"], required=True)
+    parser.add_argument("--severity", choices=["high", "low"], required=True)
+    args = parser.parse_args()
+
     try:
         rospy.init_node("combined_wizard_agent", anonymous=True)
         rule_agent = SignalCoordinator()
-        llm_agent = WizardAgent()
+        llm_agent = WizardAgent(args.expliciteness, args.interpretation, args.severity)
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
