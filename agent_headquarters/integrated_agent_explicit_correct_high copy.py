@@ -11,7 +11,7 @@ cfg = load_openai_config()
 client = openai.OpenAI(api_key=cfg["openai_api_key"])
 
 # Upload all context files to a unified vector store
-script_file_path = "../config/high_task.json"
+script_file_path = "../config/task_high.json"
 behavior_file_path = "../config/behavior_high.json"
 aruco_file_path = "../config/object_aruco_high.json"
 
@@ -68,14 +68,14 @@ STRICT INTERACTION RULES:
    - Ask for confirmation: “Do you want me to…?” or “Shall I…?”
    - action_instruction = "" and plan = []
 
-3. NEVER act without confirmation unless the command is imperative.
-4. NEVER speculate or plan aloud (e.g. don't say “I'll be ready to…”).
-5. Use polite British English — no slang or casual phrasing.
-6. If the utterance is incomplete (missing quantity, object, or location), politely ask only for the missing part.
-7. If the utterance contains **"this"**, **"that"**, **"here"**, or **"there"**, then:
+3. **Deictic utterances** (e.g. "this", "that", "here", "there"):
    - In your `verbal_response`, replace that part of the reference with `<wizard_input>`.
    - This lets a human or vision system disambiguate the target.
 
+4. NEVER act without confirmation unless the command is imperative.
+5. NEVER speculate or plan aloud (e.g. don't say “I'll be ready to…”).
+6. Use polite British English — no slang or casual phrasing.
+7. If the utterance is incomplete (missing quantity, object, or location), unless can be replaced by deictic utterances, politely ask only for the missing part.
 
 ---
 

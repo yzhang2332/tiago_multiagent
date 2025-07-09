@@ -136,7 +136,7 @@ class WizardAgent:
         self.message_queue = Queue()
         self.buffer_lock = Lock()
 
-        self.assistant_id = cfg.get(f"wizard_agent_{expliciteness}_{interpretation}_{severity}_id") # example: wizard_agent_explicit_correct_high_id
+        self.assistant_id = cfg.get(f"wizard_agent_{severity}_id") # example: wizard_agent_high_id
         if not self.assistant_id:
             rospy.logerr("WizardAgent: assistant_id param missing.")
             rospy.signal_shutdown("Missing assistant ID")
@@ -171,7 +171,7 @@ class WizardAgent:
         rospy.loginfo("WizardAgent (LLM-based) started.")
 
     def load_context(self, severity):
-        with open(f"../config/{severity}_task.yaml", "r") as f:
+        with open(f"../config/task_{severity}.yaml", "r") as f:
             task_data = yaml.safe_load(f)
         with open(f"../config/behavior_{severity}.yaml", "r") as f:
             behavior_data = yaml.safe_load(f)

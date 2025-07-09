@@ -48,7 +48,7 @@ class ScriptedInteraction:
                 ("instructor", "high_explicit_correct_3_1", False, None, True),
                 ("tiago", "Want me to shake the test tube again?", False, None, False),
                 ("instructor", "high_explicit_correct_3_2", False, None, False),
-                ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_2", True)
+                ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_second", True)
             ]
 
         rospy.loginfo("[script_mode] ScriptedInteraction node initialised and waiting for start signal.")
@@ -141,13 +141,13 @@ class ScriptedInteraction:
                     )
                     self.action_pub.publish(plan_msg)
                 
-                elif action_id == "shake_test_tube_2":
+                elif action_id == "shake_test_tube_second":
                     plan_msg = String()
                     plan_msg.data = (
                         '{"plan": ['
                         '{"action": "shake_test_tube", "marker_id": null, "sequence": ['
                         '"shake_test_tube"]}, '
-                        '{"action": "release", "marker_id": null, "sequence": ['
+                        '{"action": "release_test_tube", "marker_id": null, "sequence": ['
                         '"move_down", "open_gripper", "move_up", "move_up", "go_home_position"]}'
                         ']}'
                     )

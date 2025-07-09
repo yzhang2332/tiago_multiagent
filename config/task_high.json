@@ -1,7 +1,7 @@
 {
   "task_id": "high_risk",
   "title": "Prepare Final Medical Injections",
-  "description": "Assist a human in the final stage of preparing a critical medical injection. This includes identifying the correct powder container, stabilising the test tube, transferring and mixing the solution through sequential shaking, and verifying patient identity. Precision and sequential coordination are essential.",
+  "description": "Assist a human in the final stage of preparing a critical medical injection. This includes identifying the test tube and powder container, holding the test tube, sequential shakings, and verifying patient ID. Precision and sequential coordination are essential.",
   "steps": [
     {
       "id": "task_start",
@@ -18,7 +18,7 @@
       "action": "Acknowledge readiness and stand by for instruction."
     },
     {
-      "id": "pick_test_tube",
+      "id": "pick_place_test_tube",
       "order": 2,
       "triggers": [
         "grab the test tube",
@@ -31,7 +31,7 @@
       "action": "Pick up the clean, empty test tube and place it within reach for the upcoming transfer."
     },
     {
-      "id": "pick_powder_container",
+      "id": "pick_place_30_powder",
       "order": 3,
       "triggers": [
         "30 grams of powder",
@@ -59,22 +59,8 @@
       "action": "Hold the test tube firmly in place to support accurate pouring."
     },
     {
-      "id": "release_test_tube",
+      "id": "shake_test_tube",
       "order": 5,
-      "triggers": [
-        "done pouring",
-        "that's in",
-        "it's inside now",
-        "powder's in",
-        "transfer complete",
-        "tube's ready"
-      ],
-      "requirement": "Powder transfer is complete and the tube no longer needs to be held.",
-      "action": "Release the test tube gently and prepare for mixing."
-    },
-    {
-      "id": "shake",
-      "order": 6,
       "triggers": [
         "won’t mix itself",
         "give it a shake",
@@ -84,11 +70,11 @@
         "begin shaking"
       ],
       "requirement": "Participant or instructor prompts for initial mixing of the powder in the test tube.",
-      "action": "Gently shake the test tube to begin mixing the contents."
+      "action": "Shake the test tube to begin mixing the contents."
     },
     {
-      "id": "second_shake",
-      "order": 7,
+      "id": "shake_test_tube_second",
+      "order": 6,
       "triggers": [
         "again",
         "another one",
@@ -98,11 +84,11 @@
         "continue mixing"
       ],
       "requirement": "Participant or instructor indicates that an additional shake is necessary.",
-      "action": "Shake the test tube again to ensure complete dissolution of the powder."
+      "action": "Shake the test tube again."
     },
     {
       "id": "confirm_patient_id",
-      "order": 8,
+      "order": 7,
       "triggers": [
         "check the patient's ID",
         "double check the ID",

@@ -46,9 +46,23 @@
         "move_up",
         "go_home_position"
       ]
+    },
+    "shake_test_tube_second": {
+      "description": "Shake the test tube again",
+      "sequence": [
+        "shake_test_tube",
+        "move_down", 
+        "open_gripper", 
+        "move_up", 
+        "move_up", 
+        "go_home_position"
+      ]
     }
   },
   "primitives": {
+    "go_home_position": {
+      "description": "Move the arm to the home position"
+    },
     "open_gripper": {
       "description": "Open the gripper"
     },
@@ -61,14 +75,23 @@
     "move_down": {
       "description": "Lower the gripper vertically a bit"
     },
+    "move_left": {
+      "description": "Move the gripper left a bit"
+    },
+    "move_righ": {
+      "description": "Move the gripper right a bit"
+    },
+    "move_forward": {
+      "description": "Move the gripper forward a bit"
+    },
+    "move_backward": {
+      "description": "Move the gripper backward a bit"
+    },
     "search_head": {
       "description": "Pan/tilt head to search for ArUco marker"
     },
     "detect_aruco_with_gripper_camera": {
       "description": "Use the gripper camera to detect an ArUco marker"
-    },
-    "explore_area_near_target": {
-      "description": "Move or adjust pose slightly to retry marker detection"
     },
     "get_current_arm_position":{
       "description": "Update current arm position"
@@ -76,14 +99,14 @@
     "move_to_open":{
       "description": "Move to the target position with open gripper"
     },
-    "go_home_position":{
-      "description":"Move arm to the home position."
+    "move_to_close":{
+      "description": "Move to the target position with closed gripper"
     },
     "move_away_clear_view":{
       "description":"Move arm away to clear robot's camera's view."
     },
     "shake_test_tube": {
-      "description": "Open the gripper"
+      "description": "Shake the test tube"
     }
   }
 }

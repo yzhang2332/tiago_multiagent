@@ -33,7 +33,7 @@ class IntegratedAgent:
             sys.exit(1)
 
         # Load context configs
-        task_file = f"../config/prompt_{severity}.yaml"
+        task_file = f"../config/task_{severity}.yaml"
         prompt_file = f"../config/prompt_integrated_{expliciteness}_{interpretation}_{severity}.yaml"
         behavior_file = f"../config/behavior_{severity}.yaml"
         aruco_file = f"../config/object_aruco_{severity}.yaml"
@@ -57,6 +57,7 @@ class IntegratedAgent:
         self.action_pub = rospy.Publisher("/script_agent/action_instruction", String, queue_size=1)
         self.marker_pub = rospy.Publisher("/action_agent/target_marker", String, queue_size=1)
         self.execute_pub = rospy.Publisher("/action_agent/execute_sequence", String, queue_size=1)
+        self.reference_patch_pub = rospy.Publisher("/reference_patch", String, queue_size=1)
 
         # ROS subscriber
         rospy.Subscriber("/received_utterance", String, self.on_utterance)
@@ -87,6 +88,7 @@ class IntegratedAgent:
         # Reference patch management
         self.reference_patch = None
         self.reference_lock = threading.Lock()
+        self.patch_event = threading.Event()
 
         self.status_pub.publish("waiting")
 
@@ -104,6 +106,7 @@ class IntegratedAgent:
             if isinstance(references, list):
                 with self.reference_lock:
                     self.reference_patch = references
+                    self.patch_event.set()
                     rospy.loginfo(f"[integrated_agent] Stored reference patch: {references}")
         except Exception as e:
             rospy.logwarn(f"[integrated_agent] Invalid reference patch: {e}")
@@ -116,34 +119,60 @@ class IntegratedAgent:
         rospy.loginfo(f"[integrated_agent] Received utterance: {utterance}")
         self.status_pub.publish("received")
 
-        openai.beta.threads.messages.create(
-            thread_id=self.thread.id,
-            role="user",
-            content=utterance
-        )
-
-        # Add reference patch to thread if available
+        # Clear previous patch
         with self.reference_lock:
-            ref_patch = self.reference_patch
-            self.reference_patch = None  # clear after one use
+            self.patch_event.clear()
+            ref_patch = None
+            self.reference_patch = None
 
-        if ref_patch:
-            ref_text = f"""The participant previously referred to something using words like 'this', 'that', 'here', or 'there'. Their intended meaning has been clarified as:
-{json.dumps(ref_patch, indent=2)}
-You MUST use these references to resolve any placeholders such as <wizard_input> in the next response only.
-"""
-            openai.beta.threads.messages.create(
-                thread_id=self.thread.id,
-                role="user",
-                content=ref_text
-            )
+        # If implicit + placeholder → wait for patch BEFORE sending to LLM
+        if self.expliciteness == "implicit" and "<wizard_input>" in utterance:
+            rospy.loginfo("[integrated_agent] Implicit + <wizard_input> → waiting for patch before sending to LLM.")
+            self.reference_patch_pub.publish("require_patch")
 
+            timeout = rospy.Time.now() + rospy.Duration(100.0)
+            while rospy.Time.now() < timeout:
+                if self.patch_event.wait(timeout):
+                    with self.reference_lock:
+                        ref_patch = self.reference_patch
+                        self.reference_patch = None
+                    break
+
+            if not ref_patch:
+                rospy.logwarn("[integrated_agent] Timed out waiting for reference patch.")
+                self.status_pub.publish("failed")
+                return
+
+            rospy.loginfo(f"[integrated_agent] Using patch: {ref_patch}")
+
+            # Construct combined content
+            ref_text = f"""The participant referred to something using words like 'this', 'that', 'here', or 'there'. Their intended meaning is:
+    {json.dumps(ref_patch, indent=2)}
+    Use these references to resolve any <wizard_input> placeholders in the next response only."""
+            
+            # Add patch as first message, then the utterance
+            openai.beta.threads.messages.create(thread_id=self.thread.id, role="user", content=ref_text)
+            openai.beta.threads.messages.create(thread_id=self.thread.id, role="user", content=utterance)
+
+        else:
+            # Explicit: send utterance first
+            openai.beta.threads.messages.create(thread_id=self.thread.id, role="user", content=utterance)
+
+            # If patch available, attach it after
+            with self.reference_lock:
+                ref_patch = self.reference_patch
+                self.reference_patch = None
+
+            if self.expliciteness == "explicit" and ref_patch:
+                rospy.loginfo(f"[integrated_agent] Explicit + patch available → sending it to LLM: {ref_patch}")
+                ref_text = f"""The participant previously referred to something using words like 'this', 'that', 'here', or 'there'. Their intended meaning has been clarified as:
+    {json.dumps(ref_patch, indent=2)}
+    Use these references to resolve any <wizard_input> placeholders in the next response only."""
+                openai.beta.threads.messages.create(thread_id=self.thread.id, role="user", content=ref_text)
+
+        # Proceed with OpenAI call as before...
         try:
-            run = openai.beta.threads.runs.create(
-                thread_id=self.thread.id,
-                assistant_id=self.assistant_id
-            )
-
+            run = openai.beta.threads.runs.create(thread_id=self.thread.id, assistant_id=self.assistant_id)
             while run.status not in ["completed", "failed"]:
                 time.sleep(0.1)
                 run = openai.beta.threads.runs.retrieve(thread_id=self.thread.id, run_id=run.id)
@@ -155,10 +184,7 @@ You MUST use these references to resolve any placeholders such as <wizard_input>
 
             messages = openai.beta.threads.messages.list(thread_id=self.thread.id)
             reply = messages.data[0].content[0].text.value.strip()
-
-            # Strip JSON fences
             reply = re.sub(r"^```(?:json)?|```$", "", reply.strip(), flags=re.MULTILINE).strip()
-
             parsed = json.loads(reply)
 
             verbal = parsed.get("verbal_response", "")
@@ -169,9 +195,8 @@ You MUST use these references to resolve any placeholders such as <wizard_input>
             rospy.loginfo(f"[integrated_agent] Action instruction: {instruction}")
             rospy.loginfo(f"[integrated_agent] Plan: {plan}")
 
-            # Publish outputs
             self.verbal_pub.publish(verbal)
-            self.action_pub.publish(instruction)  # still publishing here
+            self.action_pub.publish(instruction)
             if isinstance(plan, list):
                 marker = next((step["marker_id"] for step in plan if "marker_id" in step), None)
                 if marker is not None:
