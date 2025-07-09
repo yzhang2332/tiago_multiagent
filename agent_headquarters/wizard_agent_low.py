@@ -14,9 +14,9 @@ vector_store = client.beta.vector_stores.create(name="wizard_context_store")
 client.beta.vector_stores.file_batches.upload_and_poll(
     vector_store_id=vector_store.id,
     files=[
-        open("../config/high_task.json", "rb"),
-        open("../config/behavior_high.json", "rb"),
-        open("../config/object_aruco_high.json", "rb")
+        open("../config/task_low.json", "rb"),
+        open("../config/behavior_low.json", "rb"),
+        open("../config/object_aruco_low.json", "rb")
     ]
 )
 
@@ -26,9 +26,9 @@ wizard_agent = client.beta.assistants.create(
 You are WizardAgent, an embedded reasoning assistant in a human-robot collaborative system. You observe task progress by reading ROS messages and comparing them against task definitions.
 
 You have access to:
-- high_task.json (task steps in sequence),
-- behavior_high.json (robot action primitives and meta-actions),
-- object_aruco_high.json (objects and marker IDs).
+- task_low.json (task steps in sequence),
+- behavior_low.json (robot action primitives and meta-actions),
+- object_aruco_low.json (objects and marker IDs).
 
 Your output must summarise task state clearly and **compactly**, using **short labelled phrases**. This is for fast visual feedback.
 

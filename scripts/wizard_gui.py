@@ -181,6 +181,7 @@ class SignalCoordinatorGUI:
         self.pub_reference_patch = rospy.Publisher("/reference_patch", String, queue_size=1)
         self.pub_listen = rospy.Publisher("/listen_signal", String, queue_size=1)
         self.pub_script_mode_status = rospy.Publisher("/script_mode_status", String, queue_size=1)
+        self.pub_resume = rospy.Publisher("/script_manual_control", String, queue_size=1)
 
 
 
@@ -359,6 +360,13 @@ class SignalCoordinatorGUI:
             font=("Helvetica", 12, "bold"), command=self.send_stop_takeover
         ).pack(pady=(0, 12), fill="x")
 
+        # --- Resume Progress Button ---
+        tk.Button(
+            self.right_frame, text="Resume Progress", bg="#20c997", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.send_resume_progress
+        ).pack(pady=(0, 12), fill="x")
+
+
         # --- Start Head Button ---
         tk.Button(
             self.right_frame, text="Start Head", bg="#6f42c1", fg="white",
@@ -367,6 +375,9 @@ class SignalCoordinatorGUI:
 
     def send_start_head(self):
         self.pub_script_mode_status.publish("start_head")
+
+    def send_resume_progress(self):
+        self.pub_resume.publish("resume")
 
     def toggle_primitive(self, name):
         if name in self.selected_primitives:

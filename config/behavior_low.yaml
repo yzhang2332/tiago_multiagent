@@ -10,6 +10,7 @@ meta_actions:
       - move_down
       - close_gripper
       - move_up
+      - move_up
       - move_away_clear_view
 
   place:
@@ -21,6 +22,7 @@ meta_actions:
       - move_down
       - open_gripper
       - move_up
+      - move_up
       - go_home_position
 
   release:
@@ -28,6 +30,7 @@ meta_actions:
     sequence:
       - get_current_arm_position
       - open_gripper
+      - move_up
       - move_up
       - go_home_position
 

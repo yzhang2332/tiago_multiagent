@@ -1,36 +1,30 @@
 markers:
   - id: 20
-    name: artpiece
+    name: abstract geometric artpiece
 
   - id: 21
-    name: artpiece
+    name: strong visual floral artpiece
 
   - id: 22
-    name: artpiece
+    name: black and white photograph
 
   - id: 23
-    name: artpiece
+    name: natural realism artpiece
 
   - id: 24
-    name: artpiece
-
-  - id: 25
-    name: artpiece
+    name: abstract face artpiece
 
   - id: 26
-    name: up left
+    name: top left
 
   - id: 27
-    name: up right
+    name: top right
 
   - id: 28
-    name: up middle
+    name: top middle
 
   - id: 29
-    name: down left
+    name: down middle
 
   - id: 30
     name: down right
-
-  - id: 31
-    name: down middle

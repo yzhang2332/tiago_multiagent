@@ -66,6 +66,9 @@ class ScriptedInteraction:
                 rospy.loginfo("[script_mode] Resuming script.")
                 self.paused = False
                 self.advance_script()
+            else:
+                rospy.loginfo("[script_mode] Received 'resume' but script is not paused.")
+
 
     def start_script(self, msg):
         if self.in_script:
@@ -162,26 +165,66 @@ class ScriptedInteraction:
                 self.advance_script()
                 return
 
+    # def instructor_feedback_callback(self, msg):
+    #     if self.phase == "waiting_instructor_done" and msg.data.strip().lower() in {"finished"}:
+    #         if self.intervention_block:
+    #             rospy.logwarn("[script_mode] Intervention active. Blocking script progression.")
+    #             return
+                        
+    #         rospy.loginfo("[script_mode] Instructor finished speaking.")
+    #         self.phase = "ready"
+    #         self.script_index += 1
+
+    #         if self.current_step:
+    #             _, _, _, _, pause_after = self.current_step
+    #             if pause_after:
+    #                 rospy.loginfo("[script_mode] Pausing after instructor step. Awaiting manual resume.")
+    #                 self.paused = True
+    #                 return
+                
+    #         rospy.sleep(0.5)
+    #         self.advance_script()
+    
     def instructor_feedback_callback(self, msg):
-        if self.phase == "waiting_instructor_done" and msg.data.strip().lower() in {"finished"}:
+        if self.phase == "waiting_instructor_done" and msg.data.strip().lower() == "finished":
             if self.intervention_block:
                 rospy.logwarn("[script_mode] Intervention active. Blocking script progression.")
                 return
-                        
             rospy.loginfo("[script_mode] Instructor finished speaking.")
             self.phase = "ready"
-            self.script_index += 1
 
-            if self.current_step:
-                _, _, _, _, pause_after = self.current_step
-                if pause_after:
-                    rospy.loginfo("[script_mode] Pausing after instructor step. Awaiting manual resume.")
-                    self.paused = True
-                    return
-                
+            pause_after = self.current_step[4] if self.current_step else False
+            self.script_index += 1
+            if pause_after:
+                rospy.loginfo("[script_mode] Pausing after instructor step. Awaiting manual resume.")
+                self.paused = True
+                return
+
             rospy.sleep(0.5)
             self.advance_script()
 
+    # def execution_callback(self, msg):
+    #     status = msg.data.strip().lower()
+    #     self.latest_execution_status = status
+    #     if self.phase == "waiting_tiago_done" and status in {"finished", "takeover_finished", "takeover_waiting"}:
+    #         if self.intervention_block:
+    #             rospy.logwarn("[script_mode] Intervention active. Blocking script progression.")
+    #             return
+            
+    #         rospy.loginfo("[script_mode] Tiago completed action.")
+    #         self.phase = "ready"
+    #         self.script_index += 1
+
+    #         if self.current_step:
+    #             _, _, _, _, pause_after = self.current_step
+    #             if pause_after:
+    #                 rospy.loginfo("[script_mode] Pausing after instructor step. Awaiting manual resume.")
+    #                 self.paused = True
+    #                 return
+                
+    #         rospy.sleep(0.5)
+    #         self.advance_script()
+    
     def execution_callback(self, msg):
         status = msg.data.strip().lower()
         self.latest_execution_status = status
@@ -189,21 +232,19 @@ class ScriptedInteraction:
             if self.intervention_block:
                 rospy.logwarn("[script_mode] Intervention active. Blocking script progression.")
                 return
-            
             rospy.loginfo("[script_mode] Tiago completed action.")
             self.phase = "ready"
-            self.script_index += 1
 
-            if self.current_step:
-                _, _, _, _, pause_after = self.current_step
-                if pause_after:
-                    rospy.loginfo("[script_mode] Pausing after instructor step. Awaiting manual resume.")
-                    self.paused = True
-                    return
-                
+            pause_after = self.current_step[4] if self.current_step else False
+            self.script_index += 1
+            if pause_after:
+                rospy.loginfo("[script_mode] Pausing after Tiago step. Awaiting manual resume.")
+                self.paused = True
+                return
+
             rospy.sleep(0.5)
             self.advance_script()
-    
+
     def wizard_intervene_callback(self, msg):
         data = msg.data.strip().lower()
         if data in {"takeover", "need_takeover", "need_help"}:

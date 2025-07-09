@@ -258,7 +258,6 @@ def wizard_callback(msg):
 def wizard_instruction_callback(msg):
     global current_marker_id, plan_executing, execution_status_pub, error_pub, intervene_pub, interrupted
 
-    rospy.sleep(2)
     interrupted = False
     with plan_lock:
         if plan_executing:
@@ -604,11 +603,13 @@ def go_home_position(): # ready
     
     rospy.loginfo("Reseting to home position")
     home_joint_list = [0.07, 0.7, -1.3, 1.68, 0.72, -1.29, 0.16]
+    open_gripper()
+
+    rotate_head(0.0, -0.4)
 
     # ! execution
     move_arm_joints(home_joint_list, 4.0)
-    open_gripper()
-    rotate_head(0.0, 0.0)
+    
     rospy.loginfo("Home position reached.")
     rospy.sleep(0.1)
 
@@ -714,7 +715,7 @@ def run():
     rospy.loginfo("Controllers connected. Waiting for plans.")
     execution_status_pub.publish("waiting")
 
-    # close_gripper()
+    # open_gripper()
     # go_home_position()
     
 

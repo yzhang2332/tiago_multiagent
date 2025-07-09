@@ -30,6 +30,8 @@ def tcp_to_ros1_handler(message, addr):
 
     if msg_clean == "finished":
         status_pub.publish("finished")
+        status_pub.publish("finished")
+        status_pub.publish("finished")
         rospy.sleep(1.0)
         status_pub.publish("waiting")
 

@@ -59,15 +59,17 @@ class IntegratedAgent:
         self.execute_pub = rospy.Publisher("/action_agent/execute_sequence", String, queue_size=1)
         self.reference_patch_pub = rospy.Publisher("/reference_patch", String, queue_size=1)
 
-        # ROS subscriber
-        rospy.Subscriber("/received_utterance", String, self.on_utterance)
-        rospy.Subscriber("/reference_patch", String, self.on_reference_patch)
-
+        self.status_pub.publish("waiting")
+        
+        # Reference patch management
+        self.reference_patch = None
+        self.reference_lock = threading.Lock()
+        self.patch_event = threading.Event()
 
         # Initialise assistant thread
         self.thread = openai.beta.threads.create()
         rospy.loginfo("[integrated_agent] Ready with thread: %s", self.thread.id)
-
+        
         context = f"""
         Task Info:
         {yaml.dump(self.task_data)}
@@ -85,12 +87,10 @@ class IntegratedAgent:
             content=context
         )
 
-        # Reference patch management
-        self.reference_patch = None
-        self.reference_lock = threading.Lock()
-        self.patch_event = threading.Event()
+        # ROS subscriber
+        rospy.Subscriber("/received_utterance", String, self.on_utterance)
+        rospy.Subscriber("/reference_patch", String, self.on_reference_patch)
 
-        self.status_pub.publish("waiting")
 
     def on_reference_patch(self, msg):
         raw = msg.data.strip()
@@ -214,10 +214,10 @@ class IntegratedAgent:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--expliciteness", choices=["explicit", "implicit"], required=True)
-    parser.add_argument("--IntegratedAgent(args.expliciteness, args.intents, args.task)", choices=["correct", "incorrect"], required=True)
+    parser.add_argument("--interpretation", choices=["correct", "incorrect"], required=True)
     parser.add_argument("--severity", choices=["high", "low"], required=True)
 
     args = parser.parse_args()
 
-    IntegratedAgent(args.expliciteness, args.intents, args.severity)
+    IntegratedAgent(args.expliciteness, args.interpretation, args.severity)
     rospy.spin()

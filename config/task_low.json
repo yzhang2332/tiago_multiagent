@@ -1,6 +1,6 @@
 {
-  "task_id": "art_layout",
-  "title": "Curate Exhibition Grid Layout",
+  "task_id": "low_risk",
+  "title": "Art Exhibition Layout Arrangement",
   "description": "Assist a participant in arranging six artworks on a exhibition grid layout with five positions. The task involves responding to curatorial insights, proposing balanced placements, and positioning artworks according to aesthetic cues provided by both participant and instructor.",
   "steps": [
     {
@@ -44,7 +44,7 @@
       "action": "Place a vivid expressionist piece in the position that participant wants on the grid."
     },
     {
-      "id": "calm_black_and_white",
+      "id": "calm_black_and_white_photograph",
       "order": 4,
       "triggers": [
         "Calm and peaceful",
