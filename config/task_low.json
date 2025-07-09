@@ -1,0 +1,99 @@
+{
+  "task_id": "art_layout",
+  "title": "Curate Exhibition Grid Layout",
+  "description": "Assist a participant in arranging six artworks on a exhibition grid layout with five positions. The task involves responding to curatorial insights, proposing balanced placements, and positioning artworks according to aesthetic cues provided by both participant and instructor.",
+  "steps": [
+    {
+      "id": "task_start",
+      "order": 1,
+      "triggers": [
+        "let’s figure out where each one should go",
+        "ready to begin?",
+        "how should we start?"
+      ],
+      "requirement": "Participant expresses intent to start arranging the exhibition.",
+      "action": "Offer help with layout arrangement and await placement instructions."
+    },
+    {
+      "id": "abstract_geometric",
+      "order": 2,
+      "triggers": [
+        "abstract",
+        "Colour blocks",
+        "Red, blue, yellow painting",
+        "Old-fashioned modern",
+        "Piet Mondrian",
+        "Geometric abstraction",
+        "Neoplasticism"
+      ],
+      "requirement": "Participant selects the abstract as the artwork to place.",
+      "action": "Place the bold abstract artwork in the position that participant wants on the grid."
+    },
+    {
+      "id": "place_strong_visual",
+      "order": 3,
+      "triggers": [
+        "floral abstraction",
+        "Colourful flower painting",
+        "Bright and cheerful",
+        "Expressionist floral",
+        "Strong visual impact",
+        "vivid expressionist piece"
+      ],
+      "requirement": "Participant suggests that this artwork sets the tone.",
+      "action": "Place a vivid expressionist piece in the position that participant wants on the grid."
+    },
+    {
+      "id": "calm_black_and_white",
+      "order": 4,
+      "triggers": [
+        "Calm and peaceful",
+        "Black and white photo",
+        "black-and-white landscape",
+        "Quiet lake and tree",
+        "Monochrome aesthetic"
+      ],
+      "requirement": "Participant requests placement of a calm black-and-white photograph.",
+      "action": "Place the photograph in the position that participant wants on the grid."
+    },
+    {
+      "id": "natural_realism",
+      "order": 5,
+      "triggers": [
+        "natural realism",
+        "Very detailed and lifelike",
+        "Realist landscape painting",
+        "Eilif Peterssen Summer Night",
+        "Precise observation of nature",
+        "19th-century Scandinavian art"
+      ],
+      "requirement": "Participant suggests symmetrical balance with realism opposite vivid expressionist.",
+      "action": "Place the realism piece in the position that participant wants on the grid."
+    },
+    {
+      "id": "abstract_face",
+      "order": 6,
+      "triggers": [
+        "abstract portrait",
+        "abstract face",
+        "Senecio by Paul Klee"
+      ],
+      "requirement": "Participant suggests another abstract piece.",
+      "action": "Place a second abstract artwork, the face one, in the position that participant wants on the grid."
+    },
+    {
+      "id": "layout_document_save_tracking",
+      "order": 7,
+      "triggers": [
+        "did you document it?",
+        "is it saved?",
+        "did you log the layout?",
+        "is the layout recorded?",
+        "the layout should be saved for future use",
+        "can we refer to it later?"
+      ],
+      "requirement": "Participant asks whether the layout has been documented for future reference.",
+      "action": "Read aloud the layout tracking number 2234."
+    }
+  ]
+}

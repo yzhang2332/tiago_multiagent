@@ -1,53 +1,87 @@
-task_id: high_risk
-title: "Prepare Final Medical injections"
-description:
-  A precise compound needs to be measured, poured, stabilised, and sealed.
-  Timing and quantity are sensitive. You provide supportive assistance to the human.
+task_id: art_layout
+title: Curate Exhibition Grid Layout
+description: >-
+  Assist a participant in arranging six artworks on a exhibition grid layout with five positions.
+  The task involves responding to curatorial insights, proposing balanced placements,
+  and positioning artworks according to aesthetic cues provided by both participant and instructor.
+
 steps:
   - id: task_start
     order: 1
-    trigger_phrases:
-      - "confirmed to start preparing"
-    description: "Task start, no action required."
+    triggers:
+      - let’s figure out where each one should go
+      - ready to begin?
+      - how should we start?
+    requirement: Participant expresses intent to start arranging the exhibition.
+    action: Offer help with layout arrangement and await placement instructions.
 
-  - id: measure_powder
+  - id: abstract_geometric
     order: 2
-    trigger_phrases:
-      - "30 grams of powder"
-      - "we need 30 grams"
-    description: "Pick up the container that's labelled by '30 grams' and place it in the middle of the table"
+    triggers:
+      - abstract
+      - Colour blocks
+      - Red, blue, yellow painting
+      - Old-fashioned modern
+      - Piet Mondrian
+      - Geometric abstraction
+      - Neoplasticism
+    requirement: Participant selects the abstract as the artwork to place.
+    action: Place the bold abstract artwork in the position that participant wants on the grid.
 
-  - id: stabilise_container
+  - id: place_strong_visual
     order: 3
-    trigger_phrases:
-      - "assist during the transfer"
-      - "it might spill"
-    description: "Hold the handle of the container"
+    triggers:
+      - floral abstraction
+      - Colourful flower painting
+      - Bright and cheerful
+      - Expressionist floral
+      - Strong visual impact
+      - vivid expressionist piece
+    requirement: Participant suggests that this artwork sets the tone.
+    action: Place a vivid expressionist piece in the position that participant wants on the grid.
 
-  - id: preseal_lid
+  - id: calm_black_and_white
     order: 4
-    trigger_phrases:
-      - "let it stabilise"
-      - "rest the lid lightly"
-    description: "Rest the lid gently on top, allowing air exposure."
+    triggers:
+      - Calm and peaceful
+      - Black and white photo
+      - black-and-white landscape
+      - Quiet lake and tree
+      - Monochrome aesthetic
 
-  - id: check_zone
+    requirement: Participant requests placement of a calm black-and-white photograph.
+    action: Place the photograph in the position that participant wants on the grid.
+
+  - id: natural_realism
     order: 5
-    trigger_phrases:
-      - "how's it looking"
-      - "what's the reading"
-    description: "Check and report the mixing zone reading."
+    triggers:
+      - natural realism
+      - Very detailed and lifelike
+      - Realist landscape painting
+      - Eilif Peterssen Summer Night
+      - Precise observation of nature
+      - 19th-century Scandinavian art
 
-  - id: confirm_zone
+    requirement: Participant suggests symmetrical balance with realism opposite vivid expressionist.
+    action: Place the realism piece in the position that participant wants on the grid.
+
+  - id: abstract_face
     order: 6
-    trigger_phrases:
-      - "once more"
-      - "check again"
-    description: "Confirm whether target zone is reached."
+    triggers:
+      - abstract portrait
+      - abstract face
+      - Senecio by Paul Klee
+    requirement: Participant suggests another abstract piece.
+    action: Place a second abstract artwork, the face one, in the position that participant wants on the grid.
 
-  - id: seal_container
+  - id: layout_document_save_tracking
     order: 7
-    trigger_phrases:
-      - "seal it up"
-      - "lock the lid"
-    description: "Close and lock the lid completely."
+    triggers:
+      - did you document it?
+      - is it saved?
+      - did you log the layout?
+      - is the layout recorded?
+      - the layout should be saved for future use
+      - can we refer to it later?
+    requirement: Participant asks whether the layout has been documented for future reference.
+    action: Read aloud the layout tracking number 2234.
