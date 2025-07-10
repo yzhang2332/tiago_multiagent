@@ -14,7 +14,6 @@ steps:
       - shall we start
       - let's begin
       - last dose
-      - nearly done
     requirement: Participant signals readiness to begin the final injection preparation.
     action: Acknowledge readiness and stand by for instruction.
 
@@ -68,12 +67,12 @@ steps:
   - id: shake_test_tube_second
     order: 6
     triggers:
-      - again
-      - another one
-      - keep shaking
-      - shake again
-      - second mix
-      - continue mixing
+      - shake it again
+      - another shake
+      - mix it more
+      - give it a second shake
+      - shake once more
+      - let's mix it again
     requirement: Participant or instructor indicates that an additional shake is necessary.
     action: Shake the test tube again.
 

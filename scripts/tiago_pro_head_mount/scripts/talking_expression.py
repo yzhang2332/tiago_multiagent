@@ -10,8 +10,8 @@ class ExpressionLoopPublisher(Node):
         self.publisher_ = self.create_publisher(Expression, '/robot_face/expression', 10)
 
         self.expressions = [
-            ('surprised', 0.0, 0.0),
-            ('neutral', 0.0, 0.0)
+            # ('surprised', 0.0, 0.0),
+            ('excited', 0.0, 0.0)
         ]
 
         self.index = 0

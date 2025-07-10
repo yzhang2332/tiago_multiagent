@@ -77,12 +77,12 @@ agent_instructions: |
       {
         "action": "pickup",
         "marker_id": 10,
-        "sequence": ["search_head", "get_current_arm_position", "open_gripper", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up", "move_away_clear_view"]
+        "sequence": ["search_head", "get_current_arm_position", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up", "move_up", "move_away_clear_view"]
       },
       {
         "action": "place",
         "marker_id": 18,
-        "sequence": ["search_head", "get_current_arm_position", "move_to_close", "move_down", "open_gripper", "move_up", "go_home_position"]
+        "sequence": ["search_head", "get_current_arm_position", "move_to_close", "move_down", "open_gripper", "move_up", "move_up", "go_home_position"]
       }
     ]
   }

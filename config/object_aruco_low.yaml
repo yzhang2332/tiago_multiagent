@@ -15,16 +15,16 @@ markers:
     name: abstract face artpiece
 
   - id: 26
-    name: top left
+    name: top left, opposite of and near the entrance and reception
 
   - id: 27
-    name: top right
+    name: top right, near the exit
 
   - id: 28
     name: top middle
 
   - id: 29
-    name: down middle
+    name: down middle, next to and near the entrance and reception
 
   - id: 30
-    name: down right
+    name: down right, near the exit

@@ -3,13 +3,13 @@ markers:
     name: test tube
 
   - id: 11
-    name: 29 grams powder
+    name: 29 grams powder, the red box
 
   - id: 12
-    name: 30 grams powder
+    name: 30 grams powder, the white box
 
   - id: 13
-    name: 31 grams powder
+    name: 31 grams powder, the black box
 
   - id: 14
     name: backup teset tube

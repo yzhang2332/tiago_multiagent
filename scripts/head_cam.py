@@ -100,7 +100,7 @@ class HeadCamArucoDetector:
                 img_cx = cv_image.shape[1] / 2
                 img_cy = cv_image.shape[0] / 2
 
-                tolerance_px = 100  # pixels tolerance for "central" area
+                tolerance_px = 120  # pixels tolerance for "central" area
 
                 if self.last_head_state == 3:
 
@@ -175,13 +175,13 @@ class HeadCamArucoDetector:
             self.marker_to_find = marker_id
             self.scanning = True
 
-        head_positions = [(0.0, -0.9), (0.0, -1.0),
-                          (-0.2, -1.0), (-0.2, -0.9),
-                          (0.2, -0.9), (0.2, -1.0),
-                          (-0.4, -0.9), (-0.4, -1.0),
-                          (0.4, -1.0), (0.4, -0.9),
-                          (-0.6, -1.0), (-0.6, -0.9),
-                          (-0.8, -0.9), (-0.8, -1.0)]
+        head_positions = [(0.0, -0.9), (0.0, -0.8),
+                          (-0.2, -0.8), (-0.2, -0.9),
+                          (0.2, -0.9), (0.2, -0.8),
+                          (-0.4, -0.9), (-0.4, -0.8),
+                          (0.4, -0.8), (0.4, -0.9),
+                          (-0.6, -0.8), (-0.6, -0.9),
+                          (-0.8, -0.9), (-0.8, -0.8)]
         i = 0
 
         rospy.loginfo(f"Started scanning for marker {marker_id}...")

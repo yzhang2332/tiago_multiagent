@@ -23,6 +23,8 @@ class TTSBridge(Node):
         self.client.wait_for_server()
         self.get_logger().info("TTS server ready.")
 
+        self.speech_pub = self.create_publisher(String, '/communication_hub/robot_speech', 10)
+
         self.server = TCPServer(port=HEAD_LISTEN_PORT, handler=self.handle_incoming_message)
         self.server.start()
 
@@ -31,12 +33,32 @@ class TTSBridge(Node):
         if not text:
             return "invalid"
 
+        # # Publish to /communication_hub/robot_speech
+        # msg = String()
+        # msg.data = text
+
+        # Delay speech_pub by 0.5 seconds
+        self.timer = self.create_timer(0.5, lambda: self.publish_speech_once(text))
+
+        # Send to TTS engine
         goal = TTS.Goal()
         goal.input = text
-
         future = self.client.send_goal_async(goal)
+
         future.add_done_callback(self.goal_response_callback)
         return "ok"
+
+    def publish_speech_once(self, text):
+        msg = String()
+        msg.data = text
+        self.speech_pub.publish(msg)
+        self.get_logger().info(f"Published to /communication_hub/robot_speech: {text}")
+
+        # Cancel the timer to prevent repeated publishing
+        if hasattr(self, 'timer') and self.timer is not None:
+            self.timer.cancel()
+            self.timer = None
+
 
     def goal_response_callback(self, future):
         goal_handle = future.result()
@@ -66,7 +88,6 @@ class TTSBridge(Node):
             "high_explicit_correct_3_2": "Yes."
         }
         return mapping.get(msg, None)
-
 
 def main(args=None):
     rclpy.init(args=args)

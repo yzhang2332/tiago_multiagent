@@ -111,9 +111,9 @@ def move_arm_cartesian(goal_position, goal_orientation, duration=3.5):
         error_pub.publish("ik not found")
         intervene_pub.publish("need_help")
 
-        if last_primitives[-2:] in [["search_head", "move_to_open"], ["search_head", "move_to_close"]]:
+        if last_primitives[-3:] in [["search_head", "get_current_arm_position", "move_to_open"], ["search_head", "get_current_arm_position", "move_to_close"]]:
             rospy.logwarn("Re-running previous primitives due to IK failure.")
-            for p in last_primitives[-2:]:
+            for p in last_primitives[-3:]:
                 func = globals().get(p)
                 if callable(func):
                     func()
@@ -122,7 +122,7 @@ def move_arm_cartesian(goal_position, goal_orientation, duration=3.5):
         else:
             # fallback if sequence doesn't match
             intervene_pub.publish("need_takeover")
-            go_home_position()
+            error_pub.publish("IK not found")
 
         # # ! Error solution 1
         # go_home_position()
@@ -605,10 +605,10 @@ def go_home_position(): # ready
     home_joint_list = [0.07, 0.7, -1.3, 1.68, 0.72, -1.29, 0.16]
     open_gripper()
 
-    rotate_head(0.0, -0.4)
-
     # ! execution
     move_arm_joints(home_joint_list, 4.0)
+
+    rotate_head(0.0, -0.4)
     
     rospy.loginfo("Home position reached.")
     rospy.sleep(0.1)

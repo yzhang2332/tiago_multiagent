@@ -56,18 +56,18 @@ class ScriptedInteraction:
     def head_status_callback(self, msg):
         self.latest_head_status = msg.data.strip().lower()
 
-    def manual_control_callback(self, msg):
-        command = msg.data.strip().lower()
-        if command == "pause":
-            rospy.loginfo("[script_mode] Manual pause received.")
-            self.paused = True
-        elif command == "resume":
-            if self.paused:
-                rospy.loginfo("[script_mode] Resuming script.")
-                self.paused = False
-                self.advance_script()
-            else:
-                rospy.loginfo("[script_mode] Received 'resume' but script is not paused.")
+    # def manual_control_callback(self, msg):
+    #     command = msg.data.strip().lower()
+    #     if command == "pause":
+    #         rospy.loginfo("[script_mode] Manual pause received.")
+    #         self.paused = True
+    #     elif command == "resume":
+    #         if self.paused:
+    #             rospy.loginfo("[script_mode] Resuming script.")
+    #             self.paused = False
+    #             self.advance_script()
+    #         else:
+    #             rospy.loginfo("[script_mode] Received 'resume' but script is not paused.")
 
 
     def start_script(self, msg):
@@ -82,88 +82,88 @@ class ScriptedInteraction:
             self.status_feedback_pub.publish("in_progress")
             self.advance_script()
 
-    def advance_script(self):
-        if self.intervention_block:
-                rospy.logwarn("[script_mode] Intervention active. Blocking script progression.")
-                return
+    # def advance_script(self):
+    #     if self.intervention_block:
+    #             rospy.logwarn("[script_mode] Intervention active. Blocking script progression.")
+    #             return
         
-        if self.paused:
-            rospy.loginfo("[script_mode] Script is paused. Waiting for resume.")
-            return
+    #     if self.paused:
+    #         rospy.loginfo("[script_mode] Script is paused. Waiting for resume.")
+    #         return
         
-        if not self.in_script:
-            return
+    #     if not self.in_script:
+    #         return
 
-        if self.script_index >= len(self.script):
-            rospy.loginfo("[script_mode] Script completed.")
-            self.status_feedback_pub.publish("finished")
-            self.in_script = False
-            self.phase = "idle"
-            # rospy.sleep(0.5)
-            # self.listen_pub.publish("start_listen")
-            return
+    #     if self.script_index >= len(self.script):
+    #         rospy.loginfo("[script_mode] Script completed.")
+    #         self.status_feedback_pub.publish("finished")
+    #         self.in_script = False
+    #         self.phase = "idle"
+    #         # rospy.sleep(0.5)
+    #         # self.listen_pub.publish("start_listen")
+    #         return
 
-        self.current_step = self.script[self.script_index]
-        role, text, is_action, action_id, pause_after = self.current_step
-        self.status_feedback_pub.publish("in_progress")
-        rospy.loginfo(f"[script_mode] Step {self.script_index} | Role: {role} | Phase: {self.phase}")
+    #     self.current_step = self.script[self.script_index]
+    #     role, text, is_action, action_id, pause_after = self.current_step
+    #     self.status_feedback_pub.publish("in_progress")
+    #     rospy.loginfo(f"[script_mode] Step {self.script_index} | Role: {role} | Phase: {self.phase}")
 
-        if role == "instructor":
-            rospy.loginfo(f"[script_mode] Publishing instructor TTS: {text}")
-            self.to_instructor_pub.publish(text)
-            self.phase = "waiting_instructor_done"
+    #     if role == "instructor":
+    #         rospy.loginfo(f"[script_mode] Publishing instructor TTS: {text}")
+    #         self.to_instructor_pub.publish(text)
+    #         self.phase = "waiting_instructor_done"
 
-        elif role == "tiago":
-            rospy.loginfo("[script_mode] Tiago preparing to act...")
-            rospy.sleep(12)  # Small pause for realism/synchronisation
+    #     elif role == "tiago":
+    #         rospy.loginfo("[script_mode] Tiago preparing to act...")
+    #         rospy.sleep(12)  # Small pause for realism/synchronisation
 
-            if text:
-                rospy.loginfo(f"[script_mode] Tiago verbal: {text}")
-                self.verbal_pub.publish(text)
+    #         if text:
+    #             rospy.loginfo(f"[script_mode] Tiago verbal: {text}")
+    #             self.verbal_pub.publish(text)
 
-            if is_action and action_id:
-                rospy.loginfo(f"[script_mode] Tiago action: {action_id}")
-                if action_id == "hold_test_tube":
-                    plan_msg = String()
-                    plan_msg.data = (
-                        '{"plan": ['
-                        '{"action": "pickup", "marker_id": 10, "sequence": ['
-                        '"search_head", "get_current_arm_position", "open_gripper", "move_to_open", '
-                        '"detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up"]}'
-                        ']}'
-                    )
-                    self.action_pub.publish(plan_msg)
+    #         if is_action and action_id:
+    #             rospy.loginfo(f"[script_mode] Tiago action: {action_id}")
+    #             if action_id == "hold_test_tube":
+    #                 plan_msg = String()
+    #                 plan_msg.data = (
+    #                     '{"plan": ['
+    #                     '{"action": "pickup", "marker_id": 10, "sequence": ['
+    #                     '"search_head", "get_current_arm_position", "open_gripper", "move_to_open", '
+    #                     '"detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up"]}'
+    #                     ']}'
+    #                 )
+    #                 self.action_pub.publish(plan_msg)
 
-                elif action_id == "shake_test_tube":
-                    plan_msg = String()
-                    plan_msg.data = (
-                        '{"plan": ['
-                        '{"action": "shake_test_tube", "marker_id": null, "sequence": ['
-                        '"shake_test_tube"]}'
-                        ']}'
-                    )
-                    self.action_pub.publish(plan_msg)
+    #             elif action_id == "shake_test_tube":
+    #                 plan_msg = String()
+    #                 plan_msg.data = (
+    #                     '{"plan": ['
+    #                     '{"action": "shake_test_tube", "marker_id": null, "sequence": ['
+    #                     '"shake_test_tube"]}'
+    #                     ']}'
+    #                 )
+    #                 self.action_pub.publish(plan_msg)
                 
-                elif action_id == "shake_test_tube_second":
-                    plan_msg = String()
-                    plan_msg.data = (
-                        '{"plan": ['
-                        '{"action": "shake_test_tube", "marker_id": null, "sequence": ['
-                        '"shake_test_tube"]}, '
-                        '{"action": "release_test_tube", "marker_id": null, "sequence": ['
-                        '"move_down", "open_gripper", "move_up", "move_up", "go_home_position"]}'
-                        ']}'
-                    )
-                    self.action_pub.publish(plan_msg)
+    #             elif action_id == "shake_test_tube_second":
+    #                 plan_msg = String()
+    #                 plan_msg.data = (
+    #                     '{"plan": ['
+    #                     '{"action": "shake_test_tube", "marker_id": null, "sequence": ['
+    #                     '"shake_test_tube"]}, '
+    #                     '{"action": "release_test_tube", "marker_id": null, "sequence": ['
+    #                     '"move_down", "open_gripper", "move_up", "move_up", "go_home_position"]}'
+    #                     ']}'
+    #                 )
+    #                 self.action_pub.publish(plan_msg)
 
-                self.phase = "waiting_tiago_done"
-            else:
-                rospy.loginfo("[script_mode] No action required, moving to next step.")
-                self.phase = "ready"
-                self.script_index += 1
-                rospy.sleep(0.5)
-                self.advance_script()
-                return
+    #             self.phase = "waiting_tiago_done"
+    #         else:
+    #             rospy.loginfo("[script_mode] No action required, moving to next step.")
+    #             self.phase = "ready"
+    #             self.script_index += 1
+    #             rospy.sleep(0.5)
+    #             self.advance_script()
+    #             return
 
     # def instructor_feedback_callback(self, msg):
     #     if self.phase == "waiting_instructor_done" and msg.data.strip().lower() in {"finished"}:
@@ -202,28 +202,6 @@ class ScriptedInteraction:
 
             rospy.sleep(0.5)
             self.advance_script()
-
-    # def execution_callback(self, msg):
-    #     status = msg.data.strip().lower()
-    #     self.latest_execution_status = status
-    #     if self.phase == "waiting_tiago_done" and status in {"finished", "takeover_finished", "takeover_waiting"}:
-    #         if self.intervention_block:
-    #             rospy.logwarn("[script_mode] Intervention active. Blocking script progression.")
-    #             return
-            
-    #         rospy.loginfo("[script_mode] Tiago completed action.")
-    #         self.phase = "ready"
-    #         self.script_index += 1
-
-    #         if self.current_step:
-    #             _, _, _, _, pause_after = self.current_step
-    #             if pause_after:
-    #                 rospy.loginfo("[script_mode] Pausing after instructor step. Awaiting manual resume.")
-    #                 self.paused = True
-    #                 return
-                
-    #         rospy.sleep(0.5)
-    #         self.advance_script()
     
     def execution_callback(self, msg):
         status = msg.data.strip().lower()
@@ -252,6 +230,93 @@ class ScriptedInteraction:
             self.intervention_block = True
         else:
             self.intervention_block = False
+    
+    def advance_script(self):
+        if self.intervention_block:
+            rospy.logwarn("[script_mode] Intervention active. Blocking script progression.")
+            return
+
+        if self.paused:
+            rospy.loginfo("[script_mode] Script is paused. Waiting for resume.")
+            return
+
+        if not self.in_script:
+            return
+
+        if self.script_index >= len(self.script):
+            rospy.loginfo("[script_mode] Script completed.")
+            self.status_feedback_pub.publish("finished")
+            self.in_script = False
+            self.phase = "idle"
+            return
+
+        self.current_step = self.script[self.script_index]
+        role, text, is_action, action_id, _ = self.current_step
+        self.status_feedback_pub.publish("in_progress")
+        rospy.loginfo(f"[script_mode] Step {self.script_index} | Role: {role} | Phase: {self.phase}")
+
+        if role == "instructor":
+            rospy.loginfo(f"[script_mode] Publishing instructor TTS: {text}")
+            self.to_instructor_pub.publish(text)
+        elif role == "tiago":
+            rospy.loginfo("[script_mode] Tiago preparing to act...")
+            rospy.sleep(5.0)  # Optional: small pause for realism
+            if text:
+                rospy.loginfo(f"[script_mode] Tiago verbal: {text}")
+                self.verbal_pub.publish(text)
+            if is_action and action_id:
+                rospy.loginfo(f"[script_mode] Tiago action: {action_id}")
+                if action_id == "hold_test_tube":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "pickup", "marker_id": 10, "sequence": ['
+                        '"search_head", "get_current_arm_position", "open_gripper", "move_to_open", '
+                        '"detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up"]}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "shake_test_tube":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "shake_test_tube", "marker_id": null, "sequence": ['
+                        '"shake_test_tube"]}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "shake_test_tube_second":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "shake_test_tube", "marker_id": null, "sequence": ['
+                        '"shake_test_tube"]}, '
+                        '{"action": "release_test_tube", "marker_id": null, "sequence": ['
+                        '"move_down", "open_gripper", "move_up", "move_up", "go_home_position"]}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+
+        # Always pause after each script line, wait for manual resume
+        self.paused = True
+        self.phase = "paused"
+        rospy.loginfo("[script_mode] Pausing after step. Awaiting manual resume.")
+
+    def manual_control_callback(self, msg):
+        command = msg.data.strip().lower()
+        if command == "resume":
+            if self.paused:
+                rospy.loginfo("[script_mode] Resuming script.")
+                self.paused = False
+                self.script_index += 1
+                self.phase = "ready"
+                rospy.sleep(0.2)
+                self.advance_script()
+            else:
+                rospy.loginfo("[script_mode] Received 'resume' but script is not paused.")
+        elif command == "pause":
+            rospy.loginfo("[script_mode] Manual pause received.")
+            self.paused = True
 
 
 if __name__ == "__main__":

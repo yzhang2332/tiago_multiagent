@@ -4,7 +4,6 @@ meta_actions:
     sequence:
       - search_head
       - get_current_arm_position
-      - open_gripper
       - move_to_open
       - detect_aruco_with_gripper_camera
       - move_down
@@ -30,7 +29,6 @@ meta_actions:
     sequence:
       - search_head
       - get_current_arm_position
-      - open_gripper
       - move_to_open
       - detect_aruco_with_gripper_camera
       - move_down
