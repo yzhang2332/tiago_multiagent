@@ -2,23 +2,27 @@
   "markers": [
     {
       "id": 20,
-      "name": "abstract geometric artpiece"
+      "name": "Raft of the Medusa"
     },
     {
       "id": 21,
-      "name": "strong visual floral artpiece"
+      "name": "Composition in Red, Blue, Yellow"
     },
     {
       "id": 22,
-      "name": "black and white photograph"
+      "name": "Triumph of Galatea"
     },
     {
       "id": 23,
-      "name": "natural realism artpiece"
+      "name": "Impression Sunrise"
     },
     {
       "id": 24,
-      "name": "abstract face artpiece"
+      "name": "Persistence of Memory"
+    },
+    {
+      "id": 25,
+      "name": "Handover spot"
     },
     {
       "id": 26,
@@ -26,19 +30,19 @@
     },
     {
       "id": 27,
-      "name": "top right, near the exit"
+      "name": "top right, near the exit, opposite of bottom left"
     },
     {
       "id": 28,
-      "name": "top middle"
+      "name": "top middle, opposite of bottom middle"
     },
     {
       "id": 29,
-      "name": "down middle, next to and near the entrance and reception"
+      "name": "Bottom middle, next to and near the entrance and reception, opposite of top middle"
     },
     {
       "id": 30,
-      "name": "down right, near the exit"
+      "name": "Bottom right, near the exit, opposite of top right"
     }
   ]
 }

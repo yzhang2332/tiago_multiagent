@@ -85,7 +85,50 @@ class TTSBridge(Node):
             "high_explicit_correct_2_1": "That won’t mix itself.",
             "high_explicit_correct_2_2": "Yes.",
             "high_explicit_correct_3_1": "Another one, please.",
-            "high_explicit_correct_3_2": "Yes."
+            "high_explicit_correct_3_2": "Yes.",
+
+            "high_implicit_correct_1_1": "Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.",
+            "high_implicit_correct_2_1": "That won’t mix itself.",
+            "high_implicit_correct_3_1": "Another one, please.",
+
+            "high_explicit_incorrect_1_1": "Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.",
+            "high_explicit_incorrect_1_2": "No, please hold the test tube during transfer.",
+            "high_explicit_incorrect_2_1": "That won’t mix itself.",
+            "high_explicit_incorrect_2_2": "No, please gentlely shake the test tube.",
+            "high_explicit_incorrect_3_1": "Another one, please.",
+            "high_explicit_incorrect_3_2": "No, please shake the test tube again.",
+
+            "high_implicit_incorrect_1_1": "Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.",
+            "high_implicit_incorrect_1_2": "No, please hold the test tube during transfer.",
+            "high_implicit_incorrect_2_1": "That won’t mix itself.",
+            "high_implicit_incorrect_2_2": "No, please gentlely shake the test tube.",
+            "high_implicit_incorrect_3_1": "Another one, please.",
+            "high_implicit_incorrect_3_2": "No, please shake the test tube again.",
+
+            "low_explicit_correct_1_1": "Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.",
+            "low_explicit_correct_1_2": "Yes.",
+            "low_explicit_correct_2_1": "Having a peaceful work in the middle can balance the sentiment of the tragic one.",
+            "low_explicit_correct_2_2": "Yes.",
+            "low_explicit_correct_3_1": "And the last one please.",
+            "low_explicit_correct_3_2": "Yes.",
+
+            "low_implicit_correct_1_1": "Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.",
+            "low_implicit_correct_2_1": "Having a peaceful work in the middle can balance the sentiment of the tragic one.",
+            "low_implicit_correct_3_1": "And the last one please.", 
+
+            "low_explicit_incorrect_1_1": "Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.",
+            "low_explicit_incorrect_1_2": "No, please place the Triumph of Galatea at the top left position.",
+            "low_explicit_incorrect_2_1": "Having a peaceful work in the middle can balance the sentiment of the tragic one.",
+            "low_explicit_incorrect_2_2": "No, please put the Impression Sunrise at the top middle position.",
+            "low_explicit_incorrect_3_1": "And the last one please.",
+            "low_explicit_incorrect_3_2": "No, please put the Persistence of Memory at the top right position.",
+
+            "low_implicit_incorrect_1_1": "Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.",
+            "low_implicit_incorrect_1_2": "No, please place the Triumph of Galatea at the top left position.",
+            "low_implicit_incorrect_2_1": "Having a peaceful work in the middle can balance the sentiment of the tragic one.",
+            "low_implicit_incorrect_2_2": "No, please put the Impression Sunrise at the top middle position.",
+            "low_implicit_incorrect_3_1": "And the last one please.",
+            "low_implicit_incorrect_3_2": "No, please put the Persistence of Memory at the top right position."
         }
         return mapping.get(msg, None)
 

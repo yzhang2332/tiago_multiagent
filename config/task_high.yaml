@@ -1,89 +1,83 @@
+description: Assist a human in the final stage of preparing a critical medical injection.
+  This includes identifying and handover the test tube and powder container, holding
+  the test tube, sequential shakings, and verifying patient ID. Precision and sequential
+  coordination are essential.
+steps:
+- action: Acknowledge readiness and stand by for instruction.
+  example_triggers:
+  - one more to prepare
+  - final one
+  - shall we start
+  - let's begin
+  - last dose
+  id: task_start
+  order: 1
+  requirement: Participant signals readiness to begin the final injection preparation.
+- action: Pick up the clean, empty test tube and place it within reach for the upcoming
+    transfer.
+  example_triggers:
+  - grab the test tube
+  - pass me the test tube
+  - pick up the test tube
+  - we need the test tube
+  - bring the tube over
+  id: pick_place_test_tube
+  order: 2
+  requirement: Participant indicates the need for the test tube to be retrieved.
+- action: Pick up the container labelled '30 grams' and place it centrally on the
+    workspace.
+  example_triggers:
+  - 30 grams of powder
+  - we need 30 grams
+  - grab the 30 gram one
+  - get the one marked 30g
+  - only the 30g dose
+  - 30g container
+  id: pick_place_30_powder
+  order: 3
+  requirement: Participant specifies or gestures toward the 30g powder container.
+- action: Hold the test tube firmly in place to support accurate pouring.
+  example_triggers:
+  - assist during the transfer
+  - might spill
+  - can you hold it
+  - mind holding the tube
+  - hold steady
+  id: hold_test_tube
+  order: 4
+  requirement: Participant or instructor requests help with stabilising the test tube
+    during powder transfer.
+- action: Shake the test tube to begin mixing the contents.
+  example_triggers:
+  - won’t mix itself
+  - give it a shake
+  - shake gently
+  - can you mix it
+  - begin shaking
+  id: shake_test_tube
+  order: 5
+  requirement: Participant or instructor prompts for initial mixing of the powder
+    in the test tube.
+- action: Shake the test tube again.
+  example_triggers:
+  - shake it again
+  - another shake
+  - give it a second shake
+  - shake once more
+  - let's mix it again
+  id: shake_test_tube_second
+  order: 6
+  requirement: Participant or instructor indicates that an additional shake is necessary.
+- action: Read aloud the patient ID 342A.
+  example_triggers:
+  - check the patient's ID
+  - double check the ID
+  - what's the ID
+  - verify the ID
+  - confirm patient
+  - ID please
+  id: confirm_patient_id
+  order: 7
+  requirement: Participant requests verification of the patient’s identity.
 task_id: high_risk
 title: Prepare Final Medical Injections
-description: >-
-  Assist a human in the final stage of preparing a critical medical injection.
-  This includes identifying the test tube and powder container, holding the test
-  tube, sequential shakings, and verifying patient ID. Precision and
-  sequential coordination are essential.
-steps:
-  - id: task_start
-    order: 1
-    triggers:
-      - one more to prepare
-      - final one
-      - shall we start
-      - let's begin
-      - last dose
-    requirement: Participant signals readiness to begin the final injection preparation.
-    action: Acknowledge readiness and stand by for instruction.
-
-  - id: pick_place_test_tube
-    order: 2
-    triggers:
-      - grab the test tube
-      - get the tube
-      - pick up the test tube
-      - we need the test tube
-      - bring the tube over
-    requirement: Participant indicates the need for the test tube to be retrieved.
-    action: Pick up the clean, empty test tube and place it within reach for the upcoming transfer.
-
-  - id: pick_place_30_powder
-    order: 3
-    triggers:
-      - 30 grams of powder
-      - we need 30 grams
-      - grab the 30 gram one
-      - get the one marked 30g
-      - only the 30g dose
-      - 30g container
-    requirement: Participant specifies or gestures toward the 30g powder container.
-    action: Pick up the container labelled '30 grams' and place it centrally on the workspace.
-
-  - id: hold_test_tube
-    order: 4
-    triggers:
-      - assist during the transfer
-      - might spill
-      - can you hold it
-      - mind holding the tube
-      - hold steady
-      - help me keep it still
-    requirement: Participant or instructor requests help with stabilising the test tube during powder transfer.
-    action: Hold the test tube firmly in place to support accurate pouring.
-
-  - id: shake_test_tube
-    order: 5
-    triggers:
-      - won’t mix itself
-      - give it a shake
-      - start mixing
-      - shake gently
-      - can you mix it
-      - begin shaking
-    requirement: Participant or instructor prompts for initial mixing of the powder in the test tube.
-    action: Shake the test tube to begin mixing the contents.
-
-  - id: shake_test_tube_second
-    order: 6
-    triggers:
-      - shake it again
-      - another shake
-      - mix it more
-      - give it a second shake
-      - shake once more
-      - let's mix it again
-    requirement: Participant or instructor indicates that an additional shake is necessary.
-    action: Shake the test tube again.
-
-  - id: confirm_patient_id
-    order: 7
-    triggers:
-      - check the patient's ID
-      - double check the ID
-      - what's the ID
-      - verify the ID
-      - confirm patient
-      - ID please
-    requirement: Participant requests verification of the patient’s identity.
-    action: Read aloud the patient ID 342A.

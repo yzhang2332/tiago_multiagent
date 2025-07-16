@@ -1,12 +1,12 @@
 {
   "task_id": "high_risk",
   "title": "Prepare Final Medical Injections",
-  "description": "Assist a human in the final stage of preparing a critical medical injection. This includes identifying the test tube and powder container, holding the test tube, sequential shakings, and verifying patient ID. Precision and sequential coordination are essential.",
+  "description": "Assist a human in the final stage of preparing a critical medical injection. This includes identifying and handover the test tube and powder container, holding the test tube, sequential shakings, and verifying patient ID. Precision and sequential coordination are essential.",
   "steps": [
     {
       "id": "task_start",
       "order": 1,
-      "triggers": [
+      "example_triggers": [
         "one more to prepare",
         "final one",
         "shall we start",
@@ -19,9 +19,9 @@
     {
       "id": "pick_place_test_tube",
       "order": 2,
-      "triggers": [
+      "example_triggers": [
         "grab the test tube",
-        "get the tube",
+        "pass me the test tube",
         "pick up the test tube",
         "we need the test tube",
         "bring the tube over"
@@ -32,7 +32,7 @@
     {
       "id": "pick_place_30_powder",
       "order": 3,
-      "triggers": [
+      "example_triggers": [
         "30 grams of powder",
         "we need 30 grams",
         "grab the 30 gram one",
@@ -46,13 +46,12 @@
     {
       "id": "hold_test_tube",
       "order": 4,
-      "triggers": [
+      "example_triggers": [
         "assist during the transfer",
         "might spill",
         "can you hold it",
         "mind holding the tube",
-        "hold steady",
-        "help me keep it still"
+        "hold steady"
       ],
       "requirement": "Participant or instructor requests help with stabilising the test tube during powder transfer.",
       "action": "Hold the test tube firmly in place to support accurate pouring."
@@ -60,10 +59,9 @@
     {
       "id": "shake_test_tube",
       "order": 5,
-      "triggers": [
+      "example_triggers": [
         "won’t mix itself",
         "give it a shake",
-        "start mixing",
         "shake gently",
         "can you mix it",
         "begin shaking"
@@ -74,10 +72,9 @@
     {
       "id": "shake_test_tube_second",
       "order": 6,
-      "triggers": [
+      "example_triggers": [
         "shake it again",
         "another shake",
-        "mix it more",
         "give it a second shake",
         "shake once more",
         "let's mix it again"
@@ -88,7 +85,7 @@
     {
       "id": "confirm_patient_id",
       "order": 7,
-      "triggers": [
+      "example_triggers": [
         "check the patient's ID",
         "double check the ID",
         "what's the ID",
@@ -97,7 +94,7 @@
         "ID please"
       ],
       "requirement": "Participant requests verification of the patient’s identity.",
-      "action": "Read aloud the patient ID: 342A."
+      "action": "Read aloud the patient ID 342A."
     }
   ]
 }

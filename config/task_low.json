@@ -1,90 +1,115 @@
 {
   "task_id": "low_risk",
   "title": "Art Exhibition Layout Arrangement",
-  "description": "Assist a participant in arranging six artworks on a exhibition grid layout with five positions. The task involves responding to curatorial insights, proposing balanced placements, and positioning artworks according to aesthetic cues provided by both participant and instructor.",
+  "description": "Assist a participant in arranging five artworks on a exhibition grid layout with five positions. The task involves positioning artworks according to aesthetic cues provided by both participant and instructor and verifying the floor plan's tracking number.",
   "steps": [
     {
       "id": "task_start",
       "order": 1,
-      "triggers": [
+      "example_triggers": [
         "let’s figure out where each one should go",
         "ready to begin?",
-        "how should we start?"
+        "should we start?",
+        "let's start"
       ],
       "requirement": "Participant expresses intent to start arranging the exhibition.",
-      "action": "Offer help with layout arrangement and await placement instructions."
+      "action": "Verbally offer help with layout arrangement and await placement instructions."
     },
     {
-      "id": "abstract_geometric",
+      "id": "pick_place_raft_dying",
       "order": 2,
-      "triggers": [
-        "abstract",
-        "Colour blocks",
-        "Red, blue, yellow painting",
-        "Old-fashioned modern",
-        "Piet Mondrian",
-        "Geometric abstraction",
-        "Neoplasticism"
+      "example_triggers": [
+        "Dying people",
+        "Romantic",
+        "Shipwreck",
+        "Dark",
+        "Dramatic",
+        "Medusa raft",
+        "French",
+        "Géricault",
+        "Raft of Medusa",
+        "Political scandal"
       ],
-      "requirement": "Participant selects the abstract as the artwork to place.",
-      "action": "Place the bold abstract artwork in the position that participant wants on the grid."
+      "requirement": "Participant selects The Raft of the Medusa as the artwork to place.",
+      "action": "Place The Raft of the Medusa artwork in the position that participant wants on the grid."
     },
     {
-      "id": "place_strong_visual",
+      "id": "pick_place_abstract_squares",
       "order": 3,
-      "triggers": [
-        "floral abstraction",
-        "Colourful flower painting",
-        "Bright and cheerful",
-        "Expressionist floral",
-        "Strong visual impact",
-        "vivid expressionist piece"
+      "example_triggers": [
+        "Grid",
+        "Squares",
+        "Lines",
+        "Tetris",
+        "Red, blue, yellow",
+        "Mondrian",
+        "Abstract",
+        "Geometric",
+        "Morden",
+        "Composition II",
+        "Neoplastic",
+        "Piet Mondrian"
       ],
-      "requirement": "Participant suggests that this artwork sets the tone.",
-      "action": "Place a vivid expressionist piece in the position that participant wants on the grid."
+      "requirement": "Participant selects The Composition in Red, Blue, Yellow as the artwork to place.",
+      "action": "Place The Composition in Red, Blue, Yellow artwork in the position that participant wants on the grid."
     },
     {
-      "id": "calm_black_and_white_photograph",
+      "id": "pick_place_triumph_galatea",
       "order": 4,
-      "triggers": [
-        "Calm and peaceful",
-        "Black and white photo",
-        "black-and-white landscape",
-        "Quiet lake and tree",
-        "Monochrome aesthetic"
+      "example_triggers": [
+        "Flying babies",
+        "Naked lady",
+        "Angels",
+        "Raphael",
+        "Renaissance",
+        "Mythology",
+        "Classical",
+        "The Triumph of Galatea",
+        "Villa Farnesina",
+        "High Renaissance",
+        "Neoplatonic"
       ],
-      "requirement": "Participant requests placement of a calm black-and-white photograph.",
-      "action": "Place the photograph in the position that participant wants on the grid."
+      "requirement": "Participant selects The Triumph of Galatea as the artwork to place.",
+      "action": "Place The Triumph of Galatea artwork in the position that participant wants on the grid."
     },
     {
-      "id": "natural_realism",
+      "id": "pick_place_impression_sunrise",
       "order": 5,
-      "triggers": [
-        "natural realism",
-        "Very detailed and lifelike",
-        "Realist landscape painting",
-        "Eilif Peterssen Summer Night",
-        "Precise observation of nature",
-        "19th-century Scandinavian art"
+      "example_triggers": [
+        "Blurry sunrise",
+        "Orange boats",
+        "Fuzzy water",
+        "Natural scenery",
+        "Monet",
+        "Impressionist",
+        "Impression Sunrise",
+        "Le Havre",
+        "Plein air"
       ],
-      "requirement": "Participant suggests symmetrical balance with realism opposite vivid expressionist.",
-      "action": "Place the realism piece in the position that participant wants on the grid."
+      "requirement": "Participant selects The Impression Sunrise as the artwork to place.",
+      "action": "Place The Impression Sunrise artwork in the position that participant wants on the grid."
     },
     {
-      "id": "abstract_face",
+      "id": "pick_place_persistence_memory",
       "order": 6,
-      "triggers": [
-        "abstract portrait",
-        "abstract face",
-        "Senecio by Paul Klee"
+      "example_triggers": [
+        "Melting clocks",
+        "Droopy watches",
+        "Dreamy",
+        "Dali",
+        "Surrealist",
+        "Famous clocks",
+        "The Persistence of Memory",
+        "Soft watches",
+        "Paranoiac-critical"
       ],
-      "requirement": "Participant suggests another abstract piece.",
-      "action": "Place a second abstract artwork, the face one, in the position that participant wants on the grid."
+      "requirement": "Participant selects The Persistence of Memory as the artwork to place.",
+      "action": "Place The Persistence of Memory artwork in the position that participant wants on the grid."
     },
     {
       "id": "layout_document_save_tracking",
       "order": 7,
-      "triggers": [
+      "example_triggers": [
         "did you document it?",
         "is it saved?",
         "did you log the layout?",

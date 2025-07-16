@@ -125,20 +125,22 @@ class IntegratedAgent:
             ref_patch = None
             self.reference_patch = None
 
+        DEICTIC_TERMS = ["this", "that", "here", "there"]
+
+        def contains_deictic(utterance):
+            return any(term in utterance.lower() for term in DEICTIC_TERMS)
+
         # If implicit + placeholder → wait for patch BEFORE sending to LLM
-        if self.expliciteness == "implicit" and "<wizard_input>" in utterance:
+        if self.expliciteness == "implicit" and contains_deictic(utterance):
             rospy.loginfo("[integrated_agent] Implicit + <wizard_input> → waiting for patch before sending to LLM.")
             self.reference_patch_pub.publish("require_patch")
 
-            timeout = rospy.Time.now() + rospy.Duration(100.0)
-            while rospy.Time.now() < timeout:
-                if self.patch_event.wait(timeout):
-                    with self.reference_lock:
-                        ref_patch = self.reference_patch
-                        self.reference_patch = None
-                    break
-
-            if not ref_patch:
+            timeout = 100
+            if self.patch_event.wait(timeout):
+                with self.reference_lock:
+                    ref_patch = self.reference_patch
+                    self.reference_patch = None
+            else:
                 rospy.logwarn("[integrated_agent] Timed out waiting for reference patch.")
                 self.status_pub.publish("failed")
                 return

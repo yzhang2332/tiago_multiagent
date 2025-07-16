@@ -50,6 +50,99 @@ class ScriptedInteraction:
                 ("instructor", "high_explicit_correct_3_2", False, None, False),
                 ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_second", True)
             ]
+        elif condition_key == "high_implicit_correct":
+            self.script = [
+                ("instructor", "high_implicit_correct_1_1", False, None, True),
+                ("tiago", "Sure. I will hold the test tube for you.", True, "hold_test_tube", True),
+                ("instructor", "high_implicit_correct_2_1", False, None, True),
+                ("tiago", "Got it. I'll shake the test tube.", True, "shake_test_tube", True),
+                ("instructor", "high_implicit_correct_3_1", False, None, True),
+                ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_second", True)
+            ]
+        elif condition_key == "high_explicit_incorrect":
+            self.script = [
+                ("instructor", "high_explicit_incorrect_1_1", False, None, True),
+                ("tiago", "Want me to hold your arm when you pour the powder?", False, None, False),
+                ("instructor", "high_explicit_incorrect_1_2", False, None, False),
+                ("tiago", "Sure. I will hold the test tube for you.", True, "hold_test_tube", True),
+                ("instructor", "high_explicit_incorrect_2_1", False, None, True),
+                ("tiago", " Did we do it wrong? Should we start over?", False, None, False),
+                ("instructor", "high_explicit_incorrect_2_2", False, None, False),
+                ("tiago", "Got it. I'll shake the test tube.", True, "shake_test_tube", True),
+                ("instructor", "high_explicit_incorrect_3_1", False, None, True),
+                ("tiago", "Want to add another 30 grams of powder", False, None, False),
+                ("instructor", "high_explicit_incorrect_3_2", False, None, False),
+                ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_second", True)
+            ]
+        elif condition_key == "high_implicit_incorrect":
+            self.script = [
+                ("instructor", "high_implicit_incorrect_1_1", False, None, True),
+                ("tiago", "Okay, I'll hold your arm when you pour the powder.", True, "reach_forward", False), # TODO: action reach_forward
+                ("instructor", "high_implicit_incorrect_1_2", False, None, False),
+                ("tiago", "Sure. I will hold the test tube for you.", True, "hold_test_tube", True),
+                ("instructor", "high_implicit_incorrect_2_1", False, None, True),
+                ("tiago", " Sounds like we did it wrong. Let's start over.", True, "low_shake_head", False), # TODO: action low_shake_head
+                ("instructor", "high_implicit_incorrect_2_2", False, None, False),
+                ("tiago", "Got it. I'll shake the test tube.", True, "shake_test_tube", True),
+                ("instructor", "high_implicit_incorrect_3_1", False, None, True),
+                ("tiago", "Sure, I'll add another 30 grams of powder", True, "fake_search_head", False), # TODO: action fake_search_head
+                ("instructor", "high_implicit_incorrect_3_2", False, None, False),
+                ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_second", True)
+            ]
+        elif condition_key == "low_explicit_correct":
+            self.script = [
+                ("instructor", "low_explicit_correct_1_1", False, None, True),
+                ("tiago", "Want me to put the Triumph of Galatea to the top left position?", False, None, False),
+                ("instructor", "low_explicit_correct_1_2", False, None, False),
+                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
+                ("instructor", "low_explicit_correct_2_1", False, None, True),
+                ("tiago", "Want me to put the Impression Sunrise to the top middle position?", False, None, False),
+                ("instructor", "low_explicit_correct_2_2", False, None, False),
+                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
+                ("instructor", "low_explicit_correct_3_1", False, None, True),
+                ("tiago", "Want me to put the Persistence of Memory to the top right position?", False, None, False),
+                ("instructor", "low_explicit_correct_3_2", False, None, False),
+                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.", True, "pick_place_persistence_memory", True)
+            ]
+        elif condition_key == "low_implicit_correct":
+            self.script = [
+                ("instructor", "low_implicit_correct_1_1", False, None, True),
+                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
+                ("instructor", "low_implicit_correct_2_1", False, None, True),
+                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
+                ("instructor", "low_implicit_correct_3_1", False, None, True),
+                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.", True, "pick_place_persistence_memory", True)
+            ]
+        elif condition_key == "low_explicit_incorrect":
+            self.script = [
+                ("instructor", "low_explicit_incorrect_1_1", False, None, True),
+                ("tiago", "Want me to put the Triumph of Galatea to the bottom middle positioin?", False, None, False),
+                ("instructor", "low_explicit_incorrect_1_2", False, None, False),
+                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
+                ("instructor", "low_explicit_incorrect_2_1", False, None, True),
+                ("tiago", "Want me to replace the Raft of Medusa with the Impression Sunrise in the bottom middle position?", False, None, False),
+                ("instructor", "low_explicit_incorrect_2_2", False, None, False),
+                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
+                ("instructor", "low_explicit_incorrect_3_1", False, None, True),
+                ("tiago", "Do you want me to put another Impression Sunrise to the top right position?", False, None, False),
+                ("instructor", "low_explicit_incorrect_3_2", False, None, False),
+                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.", True, "pick_place_persistence_memory", True)
+            ]
+        elif condition_key == "low_implicit_incorrect":
+            self.script = [
+                ("instructor", "low_implicit_incorrect_1_1", False, None, True),
+                ("tiago", "Okay, I'll put the Triumph of Galatea to the bottom middle position.", True, "fake_search_head", False), # TODO: fake_search_head
+                ("instructor", "low_implicit_incorrect_1_2", False, None, False),
+                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
+                ("instructor", "low_implicit_incorrect_2_1", False, None, True),
+                ("tiago", " Sounds like I'm going to replace the Raft of Medusa with the Impression Sunrise.", True, "fake_search_head", False), # TODO: fake_search_head
+                ("instructor", "low_implicit_incorrect_2_2", False, None, False),
+                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
+                ("instructor", "low_implicit_incorrect_3_1", False, None, True),
+                ("tiago", "I can't put another Impression Sunrise to the top right position. There is only one.", False, None, False),
+                ("instructor", "low_implicit_incorrect_3_2", False, None, False),
+                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.", True, "pick_place_persistence_memory", True)
+            ]
 
         rospy.loginfo("[script_mode] ScriptedInteraction node initialised and waiting for start signal.")
 
@@ -260,7 +353,7 @@ class ScriptedInteraction:
             self.to_instructor_pub.publish(text)
         elif role == "tiago":
             rospy.loginfo("[script_mode] Tiago preparing to act...")
-            rospy.sleep(5.0)  # Optional: small pause for realism
+            # rospy.sleep(5.0)  # ! add it back for experiment
             if text:
                 rospy.loginfo(f"[script_mode] Tiago verbal: {text}")
                 self.verbal_pub.publish(text)
@@ -293,6 +386,117 @@ class ScriptedInteraction:
                         '"shake_test_tube"]}, '
                         '{"action": "release_test_tube", "marker_id": null, "sequence": ['
                         '"move_down", "open_gripper", "move_up", "move_up", "go_home_position"]}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "put_triumph_galatea":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "pickup", "marker_id": 22, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_open", '
+                            '"detect_aruco_with_gripper_camera", '
+                            '"move_down", '
+                            '"close_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"move_away_clear_view"'
+                        ']}, '
+                        '{"action": "place", "marker_id": 26, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_close", '
+                            '"move_down", '
+                            '"open_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"go_home_position"'
+                        ']}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "pick_place_impression_sunrise":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "pickup", "marker_id": 23, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_open", '
+                            '"detect_aruco_with_gripper_camera", '
+                            '"move_down", '
+                            '"close_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"move_away_clear_view"'
+                        ']}, '
+                        '{"action": "place", "marker_id": 28, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_close", '
+                            '"move_down", '
+                            '"open_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"go_home_position"'
+                        ']}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "pick_place_persistence_memory":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "pickup", "marker_id": 24, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_open", '
+                            '"detect_aruco_with_gripper_camera", '
+                            '"move_down", '
+                            '"close_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"move_away_clear_view"'
+                        ']}, '
+                        '{"action": "place", "marker_id": 27, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_close", '
+                            '"move_down", '
+                            '"open_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"go_home_position"'
+                        ']}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "reach_forward":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "reach_forward", "marker_id": null, "sequence": ['
+                        '"reach_forward"]}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "low_shake_head":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "low_shake_head", "marker_id": null, "sequence": ['
+                        '"low_shake_head"]}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "fake_search_head":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "fake_search_head", "marker_id": null, "sequence": ['
+                        '"fake_search_head"]}'
                         ']}'
                     )
                     self.action_pub.publish(plan_msg)
