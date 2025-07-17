@@ -69,7 +69,7 @@ STRICT INTERACTION RULES:
    - action_instruction = "" and plan = []
    - Only act after explicit confirmation or clarification.
 
-3. **Deictic utterances** (e.g. "this", "that", "here", "there"):
+3. **Deictic utterances** (e.g. "this", "that", "here", "there", or use "it" or something similar to refer to an object or a position):
    - In your `verbal_response`, replace that part of the reference with `<wizard_input>`.
    - This lets a human disambiguate the target.
 

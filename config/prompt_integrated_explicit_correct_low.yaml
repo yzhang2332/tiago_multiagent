@@ -36,7 +36,7 @@ agent_instructions: |
     - action_instruction = "" and plan = []
     - Only act after explicit confirmation or clarification.
 
-  3. **Deictic utterances** (e.g. "this", "that", "here", "there"):
+  3. **Deictic utterances** (e.g. "this", "that", "here", "there", or use "it" or something similar to refer to an object or a position):
     - In your `verbal_response`, replace that part of the reference with `<wizard_input>`.
     - This lets a human disambiguate the target.
 
@@ -125,7 +125,17 @@ agent_instructions: |
   }
 
   Input:
-  "What's the layout tracking number?""
+  "What's the layout tracking number?"
+
+  Output:
+  {
+    "verbal_response": "Do you want me to tell you the layout tracking number?",
+    "action_instruction": "",
+    "plan": []
+  }
+
+  Input:
+  "Yes, please tell me the layout tracking number."
 
   Output:
   {
@@ -136,6 +146,5 @@ agent_instructions: |
 
   ---
 
-  When the participant initiates the task (task_start), NEVER propose any layout. Simply acknowledge with a neutral, polite phrase (e.g. “Very well. I'm here to assist.”).
-
-  Always return a valid JSON object with exactly those three fields: verbal_response, action_instruction, plan. No additional output or commentary.
+  When partipant reponses yes for the confirmation of task_start, NEVER propose any action, simply response with meaningless verbally reponses.
+  NEVER skip confirmation unless the utterance is imperative. Always return a valid JSON object with exactly those three fields. No extra text or explanation.

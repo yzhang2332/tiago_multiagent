@@ -254,6 +254,14 @@ def wizard_callback(msg):
         
         if execution_status_pub:
             execution_status_pub.publish("interrupted")
+    elif msg.data.strip().lower() == "stop_takeover":
+        rospy.loginfo("[TAKEOVER] Stopping takeover mode.")
+        interrupted = False
+        with plan_lock:
+            plan_executing = False
+        execution_status_pub.publish("finished")
+        rospy.sleep(1.0)
+        execution_status_pub.publish("waiting")
 
 def wizard_instruction_callback(msg):
     global current_marker_id, plan_executing, execution_status_pub, error_pub, intervene_pub, interrupted
@@ -516,7 +524,7 @@ def rotate_head(pan, tilt, duration=2.0):
     head_client.send_goal(goal)
     head_client.wait_for_result()
 
-def move_arm(direction, step=0.03): # ready
+def move_arm(direction, step=0.03, duration=1.0): # ready
     global interrupted
 
     if interrupted:
@@ -566,31 +574,31 @@ def move_arm(direction, step=0.03): # ready
     rospy.loginfo(f"Moving arm {direction}, new pos: {new_pos}")
 
     # ! execution
-    move_arm_cartesian(new_pos, rpy, duration=1.0)
+    move_arm_cartesian(new_pos, rpy, duration)
 
-def move_up(step=0.02): # ready
+def move_up(step=0.02, duration=1.0): # ready
     rospy.loginfo("Execute move_up primitive.")
-    move_arm("up", step)
+    move_arm("up", step, duration)
 
-def move_down(step=0.02): # ready
+def move_down(step=0.02, duration=1.0): # ready
     rospy.loginfo("Execute move_down primitive.")
-    move_arm("down", step)
+    move_arm("down", step, duration)
 
-def move_left(step=0.03): # ready
+def move_left(step=0.03, duration=1.0): # ready
     rospy.loginfo("Execute move_left primitive.")
-    move_arm("left", step)
+    move_arm("left", step, duration)
 
-def move_right(step=0.03): # ready
+def move_right(step=0.03, duration=1.0): # ready
     rospy.loginfo("Execute move_right primitive.")
-    move_arm("right", step)
+    move_arm("right", step, duration)
 
-def move_forward(step=0.03): # ready
+def move_forward(step=0.03, duration=1.0): # ready
     rospy.loginfo("Execute move_forward primitive.")
-    move_arm("forward", step)
+    move_arm("forward", step, duration)
 
-def move_backward(step=0.03): # ready
+def move_backward(step=0.03, duration=1.0): # ready
     rospy.loginfo("Execute move_backward primitive.")
-    move_arm("backward", step)
+    move_arm("backward", step, duration)
 
 def get_current_arm_position(): # ready
     rospy.loginfo("get_current_arm_position primitive.")
@@ -661,7 +669,92 @@ def shake_test_tube():
         rospy.sleep(0.2)
 
     rospy.loginfo("Finished shake_test_tube.")
-  
+
+def reach_forward():
+    global interrupted
+
+    if interrupted:
+        return
+    
+    rospy.loginfo("Executing reach_forward.")
+
+    move_left(step=0.2, duration=4.0)
+
+    move_forward(step=0.2, duration=4.0)
+
+    go_home_position()
+
+def shake_head():
+    global interrupted
+
+    if interrupted:
+        return
+    
+    pan_center = 0.0
+    pan_left = 0.15
+    pan_right = -0.15
+    tilt = -0.4
+
+    positions = [
+        (pan_center, tilt),
+        (pan_left, tilt),
+        (pan_right, tilt),
+        (pan_left, tilt),
+        (pan_right, tilt),
+        (pan_center, tilt)
+    ]
+
+    duration_per_step = 1.5
+    goal = FollowJointTrajectoryGoal()
+    trajectory = JointTrajectory()
+    trajectory.joint_names = ['head_1_joint', 'head_2_joint']
+
+    for idx, (pan, tilt) in enumerate(positions):
+        point = JointTrajectoryPoint()
+        point.positions = [pan, tilt]
+        point.time_from_start = rospy.Duration((idx + 1) * duration_per_step)
+        trajectory.points.append(point)
+
+    goal.trajectory = trajectory
+    head_client.send_goal(goal)
+    head_client.wait_for_result()
+    rospy.loginfo("Shake head finished.")
+
+def fake_search_head():
+    global interrupted
+
+    if interrupted:
+        return
+    
+    pan_center = 0.0
+    pan_left = 0.4
+    pan_right = -0.4
+    tilt = -0.8
+    tilt_center = -0.4
+
+    positions = [
+        (pan_left, tilt),
+        (pan_right, tilt),
+        (pan_center, tilt_center)
+    ]
+
+    duration_per_step = 3
+    goal = FollowJointTrajectoryGoal()
+    trajectory = JointTrajectory()
+    trajectory.joint_names = ['head_1_joint', 'head_2_joint']
+
+    for idx, (pan, tilt) in enumerate(positions):
+        point = JointTrajectoryPoint()
+        point.positions = [pan, tilt]
+        point.time_from_start = rospy.Duration((idx + 1) * duration_per_step)
+        trajectory.points.append(point)
+
+    goal.trajectory = trajectory
+    head_client.send_goal(goal)
+    head_client.wait_for_result()
+    rospy.loginfo("Shake head finished.")
+
+
 
 # === Init & Main ===
 def run():
@@ -717,8 +810,6 @@ def run():
 
     # open_gripper()
     # go_home_position()
-    
-
 
     rospy.spin()
 

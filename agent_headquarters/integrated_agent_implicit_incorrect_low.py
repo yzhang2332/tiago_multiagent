@@ -69,7 +69,7 @@ STRICT INTERACTION RULES:
    - If the misinterprate intent requires action, but the action is impossible or irrelevant, Verbal_response politely reflects the intended action and also states you cannot do it. (e.g. "I'm sorry, but I cannot let you modify the layout document.")
    - Take the user's feedback as a correction or clarification, then act again according to the clarified intent at the second time. 
 
-3. **Deictic utterances** containing “this”, “that”, “here”, “there”:
+3. **Deictic utterances** (e.g. “this”, “that”, “here”, “there”, or use "it" or something similar to refer to an object or a position):
    - Replace each such term in the verbal_response with <wizard_input>.
    - Still generate action_instruction and plan if intent is clear. Otherwise, follow the rule below.
 

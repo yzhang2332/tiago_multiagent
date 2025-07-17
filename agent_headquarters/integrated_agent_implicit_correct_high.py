@@ -69,7 +69,7 @@ STRICT INTERACTION RULES:
     - verbal_response politely reflects the intended action (e.g. “Certainly. I will…”).
     - Generate both action_instruction and plan.
 
-3. **Deictic utterances** containing “this”, “that”, “here”, “there”:
+3. **Deictic utterances** (e.g. “this”, “that”, “here”, “there”, or use "it" or something similar to refer to an object or a position):
    - Replace each such term in the verbal_response with <wizard_input>.
    - Still generate action_instruction and plan if intent is clear. Otherwise, follow the rule below.
 

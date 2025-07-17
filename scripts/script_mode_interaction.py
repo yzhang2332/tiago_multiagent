@@ -38,15 +38,15 @@ class ScriptedInteraction:
         if condition_key == "high_explicit_correct":
             self.script = [
                 ("instructor", "high_explicit_correct_1_1", False, None, True),
-                ("tiago", "Want me to hold the test tube for you?", False, None, False),
+                ("tiago", "Do you want me to hold the test tube for you?", False, None, False),
                 ("instructor", "high_explicit_correct_1_2", False, None, False),
                 ("tiago", "Sure. I will hold the test tube for you.", True, "hold_test_tube", True),
                 ("instructor", "high_explicit_correct_2_1", False, None, True),
-                ("tiago", "Want me to shake the test tube?", False, None, False),
+                ("tiago", "Do you want me to shake the test tube?", False, None, False),
                 ("instructor", "high_explicit_correct_2_2", False, None, False),
                 ("tiago", "Got it. I'll shake the test tube.", True, "shake_test_tube", True),
                 ("instructor", "high_explicit_correct_3_1", False, None, True),
-                ("tiago", "Want me to shake the test tube again?", False, None, False),
+                ("tiago", "Do you want me to shake the test tube again?", False, None, False),
                 ("instructor", "high_explicit_correct_3_2", False, None, False),
                 ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_second", True)
             ]
@@ -62,7 +62,7 @@ class ScriptedInteraction:
         elif condition_key == "high_explicit_incorrect":
             self.script = [
                 ("instructor", "high_explicit_incorrect_1_1", False, None, True),
-                ("tiago", "Want me to hold your arm when you pour the powder?", False, None, False),
+                ("tiago", "Do you want me to hold your arm when you pour the powder?", False, None, False),
                 ("instructor", "high_explicit_incorrect_1_2", False, None, False),
                 ("tiago", "Sure. I will hold the test tube for you.", True, "hold_test_tube", True),
                 ("instructor", "high_explicit_incorrect_2_1", False, None, True),
@@ -81,7 +81,7 @@ class ScriptedInteraction:
                 ("instructor", "high_implicit_incorrect_1_2", False, None, False),
                 ("tiago", "Sure. I will hold the test tube for you.", True, "hold_test_tube", True),
                 ("instructor", "high_implicit_incorrect_2_1", False, None, True),
-                ("tiago", " Sounds like we did it wrong. Let's start over.", True, "low_shake_head", False), # TODO: action low_shake_head
+                ("tiago", " Sounds like we did it wrong. Let's start over.", True, "shake_head", False), # TODO: action shake_head
                 ("instructor", "high_implicit_incorrect_2_2", False, None, False),
                 ("tiago", "Got it. I'll shake the test tube.", True, "shake_test_tube", True),
                 ("instructor", "high_implicit_incorrect_3_1", False, None, True),
@@ -92,15 +92,15 @@ class ScriptedInteraction:
         elif condition_key == "low_explicit_correct":
             self.script = [
                 ("instructor", "low_explicit_correct_1_1", False, None, True),
-                ("tiago", "Want me to put the Triumph of Galatea to the top left position?", False, None, False),
+                ("tiago", "Do you want me to put the Triumph of Galatea to the top left position?", False, None, False),
                 ("instructor", "low_explicit_correct_1_2", False, None, False),
                 ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
                 ("instructor", "low_explicit_correct_2_1", False, None, True),
-                ("tiago", "Want me to put the Impression Sunrise to the top middle position?", False, None, False),
+                ("tiago", "Do you want me to put the Impression Sunrise to the top middle position?", False, None, False),
                 ("instructor", "low_explicit_correct_2_2", False, None, False),
                 ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
                 ("instructor", "low_explicit_correct_3_1", False, None, True),
-                ("tiago", "Want me to put the Persistence of Memory to the top right position?", False, None, False),
+                ("tiago", "Do you want me to put the Persistence of Memory to the top right position?", False, None, False),
                 ("instructor", "low_explicit_correct_3_2", False, None, False),
                 ("tiago", "Sure, I will put the Persistence of Memory to the top right position.", True, "pick_place_persistence_memory", True)
             ]
@@ -116,11 +116,11 @@ class ScriptedInteraction:
         elif condition_key == "low_explicit_incorrect":
             self.script = [
                 ("instructor", "low_explicit_incorrect_1_1", False, None, True),
-                ("tiago", "Want me to put the Triumph of Galatea to the bottom middle positioin?", False, None, False),
+                ("tiago", "Do you want me to put the Triumph of Galatea to the bottom middle positioin?", False, None, False),
                 ("instructor", "low_explicit_incorrect_1_2", False, None, False),
                 ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
                 ("instructor", "low_explicit_incorrect_2_1", False, None, True),
-                ("tiago", "Want me to replace the Raft of Medusa with the Impression Sunrise in the bottom middle position?", False, None, False),
+                ("tiago", "Do you want me to replace the Raft of Medusa with the Impression Sunrise in the bottom middle position?", False, None, False),
                 ("instructor", "low_explicit_incorrect_2_2", False, None, False),
                 ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
                 ("instructor", "low_explicit_incorrect_3_1", False, None, True),
@@ -389,7 +389,7 @@ class ScriptedInteraction:
                         ']}'
                     )
                     self.action_pub.publish(plan_msg)
-                elif action_id == "put_triumph_galatea":
+                elif action_id == "pick_place_triumph_galatea":
                     plan_msg = String()
                     plan_msg.data = (
                         '{"plan": ['
@@ -482,12 +482,12 @@ class ScriptedInteraction:
                         ']}'
                     )
                     self.action_pub.publish(plan_msg)
-                elif action_id == "low_shake_head":
+                elif action_id == "shake_head":
                     plan_msg = String()
                     plan_msg.data = (
                         '{"plan": ['
-                        '{"action": "low_shake_head", "marker_id": null, "sequence": ['
-                        '"low_shake_head"]}'
+                        '{"action": "shake_head", "marker_id": null, "sequence": ['
+                        '"shake_head"]}'
                         ']}'
                     )
                     self.action_pub.publish(plan_msg)

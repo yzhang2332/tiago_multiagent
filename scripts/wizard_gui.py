@@ -10,14 +10,29 @@ import subprocess
 from collections import defaultdict
 
 # === Load configuration ===
-config_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config"))
-with open(os.path.join(config_dir, "object_aruco_high.json"), "r") as f:
-    aruco_data = json.load(f)
-with open(os.path.join(config_dir, "behavior_high.json"), "r") as f:
-    behavior_data = json.load(f)
+# config_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config"))
+# with open(os.path.join(config_dir, "object_aruco_high.json"), "r") as f:
+#     aruco_data = json.load(f)
+# with open(os.path.join(config_dir, "behavior_high.json"), "r") as f:
+#     behavior_data = json.load(f)
 
-PRIMITIVES = list(behavior_data["primitives"].keys())
-META_ACTIONS = list(behavior_data["meta_actions"].keys())
+def load_config_by_severity(severity):
+    config_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config"))
+    if severity == "high":
+        aruco_file = os.path.join(config_dir, "object_aruco_high.json")
+        behavior_file = os.path.join(config_dir, "behavior_high.json")
+    else:
+        aruco_file = os.path.join(config_dir, "object_aruco_low.json")
+        behavior_file = os.path.join(config_dir, "behavior_low.json")
+    with open(aruco_file, "r") as f:
+        aruco_data = json.load(f)
+    with open(behavior_file, "r") as f:
+        behavior_data = json.load(f)
+    return aruco_data, behavior_data
+
+
+# PRIMITIVES = list(behavior_data["primitives"].keys())
+# META_ACTIONS = list(behavior_data["meta_actions"].keys())
 
 # === Experiment Config Options and Commands ===
 EXPERIMENT_CONFIG = {
@@ -91,9 +106,9 @@ def update_status(label):
     if label in status_labels:
         status_labels[label].config(text=thread_status[label], fg="green" if thread_status[label] == "active" else "grey")
 
-def select_value(key, value, config_display):
-    selection[key] = value
-    update_selected_config(config_display)
+# def select_value(key, value, config_display):
+#     selection[key] = value
+#     update_selected_config(config_display)
 
 def update_selected_config(config_display):
     config_display.config(
@@ -102,7 +117,7 @@ def update_selected_config(config_display):
              f"Severity: {selection['Severity'] or '-'}"
     )
 
-def build_experiment_column(root):
+def build_experiment_column(root, gui):
     leftmost = tk.LabelFrame(root, text="Experiment Config", padx=8, pady=8, width=350)
     leftmost.pack(side="left", fill="y", padx=5, pady=5)
     leftmost.pack_propagate(False)
@@ -115,21 +130,21 @@ def build_experiment_column(root):
     tk.Label(leftmost, text="Select Expliciteness", font=("Helvetica", 11, "bold")).pack()
     for val in EXPERIMENT_CONFIG["Expliciteness"]:
         b = tk.Button(leftmost, text=val, width=20,
-                      command=lambda v=val: select_value("Expliciteness", v, config_display))
+                      command=lambda v=val: gui.select_value("Expliciteness", v, config_display))
         b.pack()
 
     # Interpretation
     tk.Label(leftmost, text="Select Interpretation", font=("Helvetica", 11, "bold")).pack(pady=(10, 0))
     for val in EXPERIMENT_CONFIG["Interpretation"]:
         b = tk.Button(leftmost, text=val, width=20,
-                      command=lambda v=val: select_value("Interpretation", v, config_display))
+                      command=lambda v=val: gui.select_value("Interpretation", v, config_display))
         b.pack()
 
     # Severity
     tk.Label(leftmost, text="Select Severity", font=("Helvetica", 11, "bold")).pack(pady=(10, 0))
     for val in EXPERIMENT_CONFIG["Severity"]:
         b = tk.Button(leftmost, text=val, width=20,
-                      command=lambda v=val: select_value("Severity", v, config_display))
+                      command=lambda v=val: gui.select_value("Severity", v, config_display))
         b.pack()
 
     # Divider
@@ -183,15 +198,13 @@ class SignalCoordinatorGUI:
         self.pub_script_mode_status = rospy.Publisher("/script_mode_status", String, queue_size=1)
         self.pub_resume = rospy.Publisher("/script_manual_control", String, queue_size=1)
 
-
-
+        # initialize primitives and markers
+        self.aruco_data, self.behavior_data = load_config_by_severity("low")
         self.latest_msgs = {}
         self.labels = {}
         self.selected_primitives = []
         self.selected_marker_names = []
         self.selected_marker_ids = []
-
-
 
         self.sections = {
             "Wizard Agent Summary": ["/wizard_agent/summary"],
@@ -225,7 +238,7 @@ class SignalCoordinatorGUI:
         main_frame = tk.Frame(self.root)
         main_frame.pack(fill="both", expand=True)
 
-        self.exp_column = build_experiment_column(main_frame)
+        self.exp_column = build_experiment_column(main_frame, self)
 
         self.left_frame = tk.Frame(main_frame, width=800)
         self.left_frame.pack(side="left", fill="both", expand=True)
@@ -241,6 +254,53 @@ class SignalCoordinatorGUI:
         self.add_wizard_controls()
         self.root.after(200, self.refresh_gui)
 
+    def update_action_marker_buttons(self):
+        # Remove existing buttons
+        for btn, _ in getattr(self, "primitive_buttons", []):
+            btn.destroy()
+        for btn, _ in getattr(self, "marker_buttons", []):
+            btn.destroy()
+        self.primitive_buttons = []
+        self.marker_buttons = []
+
+        PRIMITIVES = list(self.behavior_data["primitives"].keys())
+        META_ACTIONS = list(self.behavior_data["meta_actions"].keys())
+
+        action_frame = self.action_frame
+        marker_frame = self.marker_frame
+
+        # Actions
+        for child in action_frame.winfo_children():
+            child.destroy()
+        for name in META_ACTIONS + PRIMITIVES:
+            btn = tk.Button(action_frame, text=name,
+                            command=lambda n=name: self.toggle_primitive(n),
+                            font=("Helvetica", 11), bg="#ddffee", relief="raised")
+            btn.pack(fill="x", pady=1)
+            self.primitive_buttons.append((btn, name))
+
+        # Markers
+        for child in marker_frame.winfo_children():
+            child.destroy()
+        for marker in self.aruco_data["markers"]:
+            mid = marker["id"]
+            name = marker["name"]
+            btn = tk.Button(marker_frame, text=f"{name} (ID: {mid})",
+                            command=lambda m=mid: self.select_marker(m),
+                            wraplength=240, font=("Helvetica", 11),
+                            bg="#e0e0ff", relief="raised")
+            btn.pack(fill="x", pady=1)
+            self.marker_buttons.append((btn, mid))
+
+    def select_value(self, key, value, config_display):
+        selection[key] = value
+        update_selected_config(config_display)
+        # Reload action and marker buttons based on new severity
+        if key == "Severity":
+            self.aruco_data, self.behavior_data = load_config_by_severity(value)
+            self.update_action_marker_buttons()
+
+    
     def add_section(self, title, topics):
         section_frame = tk.LabelFrame(
             self.left_frame, text=title, bg="#f8f9fa",
@@ -316,6 +376,8 @@ class SignalCoordinatorGUI:
         action_frame.pack(side="left", fill="both", expand=True, padx=5)
 
         self.primitive_buttons = []
+        PRIMITIVES = list(self.behavior_data["primitives"].keys())
+        META_ACTIONS = list(self.behavior_data["meta_actions"].keys())
         for name in META_ACTIONS + PRIMITIVES:
             btn = tk.Button(action_frame, text=name,
                             command=lambda n=name: self.toggle_primitive(n),
@@ -328,7 +390,7 @@ class SignalCoordinatorGUI:
         marker_frame.pack(side="right", fill="both", expand=True, padx=5)
 
         self.marker_buttons = []
-        for marker in aruco_data["markers"]:
+        for marker in self.aruco_data["markers"]:
             mid = marker["id"]
             name = marker["name"]
             btn = tk.Button(marker_frame, text=f"{name} (ID: {mid})",
@@ -373,6 +435,9 @@ class SignalCoordinatorGUI:
             font=("Helvetica", 12, "bold"), command=self.send_start_head
         ).pack(pady=(0, 12), fill="x")
 
+        self.action_frame = action_frame
+        self.marker_frame = marker_frame
+
     def send_start_head(self):
         self.pub_script_mode_status.publish("start_head")
 
@@ -396,7 +461,7 @@ class SignalCoordinatorGUI:
         if marker_id not in self.selected_marker_ids:
             self.selected_marker_ids.append(marker_id)
 
-            name = next((marker["name"] for marker in aruco_data["markers"] if marker["id"] == marker_id), str(marker_id))
+            name = next((marker["name"] for marker in self.aruco_data["markers"] if marker["id"] == marker_id), str(marker_id))
             self.selected_marker_names.append(name)
 
         # Highlight all selected, emphasize the last one
@@ -410,6 +475,10 @@ class SignalCoordinatorGUI:
                 btn.config(relief="raised", font=("Helvetica", 11), bg="#e0e0ff", fg="black")
 
     def send_start_listening(self):
+        self.pub_intervene.publish("takeover")
+        rospy.sleep(0.1)
+        self.pub_intervene.publish("stop_takeover")
+        rospy.sleep(1.5)
         self.pub_listen.publish("start_listen")
 
     def send_stop_listening(self):
@@ -426,12 +495,13 @@ class SignalCoordinatorGUI:
 
     def update_and_takeover(self):
         self.send_takeover()
+        rospy.sleep(0.1)  # Ensure the intervene message is processed first
         if self.selected_primitives:
             plan = []
             last_marker_id = self.selected_marker_ids[-1] if self.selected_marker_ids else None
             for p in self.selected_primitives:
-                if p in META_ACTIONS:
-                    sequence = behavior_data["meta_actions"][p]["sequence"]
+                if p in self.behavior_data["meta_actions"]:
+                    sequence = self.behavior_data["meta_actions"][p]["sequence"]
                 else:
                     sequence = [p]
                 plan.append({
@@ -483,21 +553,31 @@ class SignalCoordinatorGUI:
             t = self.message_times.get(topic, now)
             age = now - t
 
+            if age > 10:
+                color = "grey"
+            elif topic in ["/listen_signal", "/execution_status"]:
+                color = "blue"
+            elif topic in ["/wizard_intervene", "/error_log"]:
+                color = "red"
+            else:
+                color = "black"
+
             if isinstance(widget, tk.Text):
                 widget.config(state="normal")
                 widget.delete("1.0", tk.END)
                 widget.insert(tk.END, content)
+                widget.config(fg=color)
                 widget.config(state="disabled")
             else:
-                # Age-based fading
-                if age > 10:
-                    color = "grey"
-                elif topic in ["/listen_signal", "/execution_status"]:
-                    color = "blue"
-                elif topic in ["/wizard_intervene", "/error_log"]:
-                    color = "red"
-                else:
-                    color = "black"
+                # # Age-based fading
+                # if age > 10:
+                #     color = "grey"
+                # elif topic in ["/listen_signal", "/execution_status"]:
+                #     color = "blue"
+                # elif topic in ["/wizard_intervene", "/error_log"]:
+                #     color = "red"
+                # else:
+                #     color = "black"
                 widget.config(text=content, fg=color)
 
         self.root.after(200, self.refresh_gui)

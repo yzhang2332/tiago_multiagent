@@ -4,6 +4,7 @@ from rclpy.action import ActionClient
 
 from std_msgs.msg import String
 from tts_msgs.action import TTS
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 import sys
 import os
 
@@ -24,14 +25,18 @@ class TTSBridge(Node):
         self.get_logger().info("TTS server ready.")
 
         self.speech_pub = self.create_publisher(String, '/communication_hub/robot_speech', 10)
+        self.head_pub = self.create_publisher(JointTrajectory, '/head_controller/joint_trajectory', 10)
 
         self.server = TCPServer(port=HEAD_LISTEN_PORT, handler=self.handle_incoming_message)
         self.server.start()
 
     def handle_incoming_message(self, message, addr):
-        text = self.lookup_text(message)
+        text, head_pattern = self.lookup_text(message)
         if not text:
             return "invalid"
+        
+        if head_pattern:
+            self.move_head(head_pattern)
 
         # # Publish to /communication_hub/robot_speech
         # msg = String()
@@ -78,59 +83,109 @@ class TTSBridge(Node):
         client.send("finished")
         client.send("finished")
 
+    def move_head(self, pattern):
+        traj = JointTrajectory()
+        traj.joint_names = ['head_1_joint', 'head_2_joint']
+
+        points = []
+        if pattern == "right_middle":
+            # 先右，再中
+            points = [
+                ([0.0, 0.0], 0.5),
+                ([-0.5, 0.2], 2.0),   # 右
+                ([0.0, 0.0], 3.0),   # 中
+            ]
+        elif pattern == "right_left_middle":
+            # 右->左->中
+            points = [
+                ([0.0, 0.0], 0.5),
+                ([-0.5, 0.2], 3.0),   # 右
+                ([0.2, 0.0], 5.0),  # 左
+                ([0.0, 0.0], 7.0),   # 中
+            ]
+        elif pattern == "left_right_middle":
+            # 左->右->中
+            points = [
+                ([0.0, 0.0], 0.5),
+                ([0.2, 0.0], 1.5),  # 左
+                ([-0.5, 0.2], 3.5),   # 右
+                ([0.0, 0.0], 5.5),   # 中
+            ]
+        elif pattern == "left_middle":
+            # 先左，再中
+            points = [
+                ([0.0, 0.0], 0.5),
+                ([0.2, 0.0], 2.0),  # 左
+                ([0.0, 0.0], 3.0),   # 中
+            ]
+        else:
+            # 默认只回中
+            points = [
+                ([0.0, 0.0], 0.5)
+            ]
+
+        for pos, t in points:
+            pt = JointTrajectoryPoint()
+            pt.positions = pos
+            pt.time_from_start = rclpy.duration.Duration(seconds=t).to_msg()
+            traj.points.append(pt)
+
+        self.head_pub.publish(traj)
+        self.get_logger().info(f"Published head trajectory: {pattern}")
+
     def lookup_text(self, msg):
         mapping = {
-            "high_explicit_correct_1_1": "Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.",
-            "high_explicit_correct_1_2": "Yes.",
-            "high_explicit_correct_2_1": "That won’t mix itself.",
-            "high_explicit_correct_2_2": "Yes.",
-            "high_explicit_correct_3_1": "Another one, please.",
-            "high_explicit_correct_3_2": "Yes.",
+            "high_explicit_correct_1_1": ("Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.", "right_left_middle"),
+            "high_explicit_correct_1_2": ("Yes.", "right_middle"),
+            "high_explicit_correct_2_1": ("That won’t mix itself.", "left_right_middle"),
+            "high_explicit_correct_2_2": ("Yes.", "right_middle"),
+            "high_explicit_correct_3_1": ("Another one, please.""right_middle"),
+            "high_explicit_correct_3_2": ("Yes.", "right_middle"),
 
-            "high_implicit_correct_1_1": "Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.",
-            "high_implicit_correct_2_1": "That won’t mix itself.",
-            "high_implicit_correct_3_1": "Another one, please.",
+            "high_implicit_correct_1_1": ("Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.", "right_left_middle"),
+            "high_implicit_correct_2_1": ("That won’t mix itself.", "left_right_middle"),
+            "high_implicit_correct_3_1": ("Another one, please.", "right_middle"),
 
-            "high_explicit_incorrect_1_1": "Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.",
-            "high_explicit_incorrect_1_2": "No, please hold the test tube during transfer.",
-            "high_explicit_incorrect_2_1": "That won’t mix itself.",
-            "high_explicit_incorrect_2_2": "No, please gentlely shake the test tube.",
-            "high_explicit_incorrect_3_1": "Another one, please.",
-            "high_explicit_incorrect_3_2": "No, please shake the test tube again.",
+            "high_explicit_incorrect_1_1": ("Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.", "right_left_middle"),
+            "high_explicit_incorrect_1_2": ("No, I mean, please hold the test tube during transfer.", "right_middle"),
+            "high_explicit_incorrect_2_1": ("That won’t mix itself.", "left_right_middle"),
+            "high_explicit_incorrect_2_2": ("No, I mean, please gentlely shake the test tube.", "right_middle"),
+            "high_explicit_incorrect_3_1": ("Another one, please.", "right_middle"),
+            "high_explicit_incorrect_3_2": ("No, I mean, please shake the test tube again.", "right_middle"),
 
-            "high_implicit_incorrect_1_1": "Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.",
-            "high_implicit_incorrect_1_2": "No, please hold the test tube during transfer.",
-            "high_implicit_incorrect_2_1": "That won’t mix itself.",
-            "high_implicit_incorrect_2_2": "No, please gentlely shake the test tube.",
-            "high_implicit_incorrect_3_1": "Another one, please.",
-            "high_implicit_incorrect_3_2": "No, please shake the test tube again.",
+            "high_implicit_incorrect_1_1": ("Mind assisting during the transfer? If any of it spills, we’ll be under the required dose.", "right_left_middle"),
+            "high_implicit_incorrect_1_2": ("No, I mean, please hold the test tube during transfer.", "right_middle"),
+            "high_implicit_incorrect_2_1": ("That won’t mix itself.", "left_right_middle"),
+            "high_implicit_incorrect_2_2": ("No, I mean, please gentlely shake the test tube.", "right_middle"),
+            "high_implicit_incorrect_3_1": ("Another one, please.", "right_middle"),
+            "high_implicit_incorrect_3_2": ("No, I mean, please shake the test tube again.", "right_middle"),
 
-            "low_explicit_correct_1_1": "Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.",
-            "low_explicit_correct_1_2": "Yes.",
-            "low_explicit_correct_2_1": "Having a peaceful work in the middle can balance the sentiment of the tragic one.",
-            "low_explicit_correct_2_2": "Yes.",
-            "low_explicit_correct_3_1": "And the last one please.",
-            "low_explicit_correct_3_2": "Yes.",
+            "low_explicit_correct_1_1": ("Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.", "right_middle"),
+            "low_explicit_correct_1_2": ("Yes.", "right_middle"),
+            "low_explicit_correct_2_1": ("Having a peaceful work in the middle can balance the sentiment of the tragic one.", "right_middle"),
+            "low_explicit_correct_2_2": ("Yes.", "right_middle"),
+            "low_explicit_correct_3_1": ("And the last one please.", "right_middle"),
+            "low_explicit_correct_3_2": ("Yes.", "right_middle"),
 
-            "low_implicit_correct_1_1": "Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.",
-            "low_implicit_correct_2_1": "Having a peaceful work in the middle can balance the sentiment of the tragic one.",
-            "low_implicit_correct_3_1": "And the last one please.", 
+            "low_implicit_correct_1_1": ("Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.", "right_middle"),
+            "low_implicit_correct_2_1": ("Having a peaceful work in the middle can balance the sentiment of the tragic one.", "right_middle"),
+            "low_implicit_correct_3_1": ("And the last one please.", "right_middle"), 
 
-            "low_explicit_incorrect_1_1": "Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.",
-            "low_explicit_incorrect_1_2": "No, please place the Triumph of Galatea at the top left position.",
-            "low_explicit_incorrect_2_1": "Having a peaceful work in the middle can balance the sentiment of the tragic one.",
-            "low_explicit_incorrect_2_2": "No, please put the Impression Sunrise at the top middle position.",
-            "low_explicit_incorrect_3_1": "And the last one please.",
-            "low_explicit_incorrect_3_2": "No, please put the Persistence of Memory at the top right position.",
+            "low_explicit_incorrect_1_1": ("Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.", "right_left_middle"),
+            "low_explicit_incorrect_1_2": ("No, I mean, please place the Triumph of Galatea at the top left position.", "right_middle"),
+            "low_explicit_incorrect_2_1": ("Having a peaceful work in the middle can balance the sentiment of the tragic one.", "right_left_middle"),
+            "low_explicit_incorrect_2_2": ("No, I mean, please put the Impression Sunrise at the top middle position.", "right_middle"),
+            "low_explicit_incorrect_3_1": ("And the last one please.", "right_middle"),
+            "low_explicit_incorrect_3_2": ("No, I mean, please put the Persistence of Memory at the top right position.", "right_middle"),
 
-            "low_implicit_incorrect_1_1": "Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.",
-            "low_implicit_incorrect_1_2": "No, please place the Triumph of Galatea at the top left position.",
-            "low_implicit_incorrect_2_1": "Having a peaceful work in the middle can balance the sentiment of the tragic one.",
-            "low_implicit_incorrect_2_2": "No, please put the Impression Sunrise at the top middle position.",
-            "low_implicit_incorrect_3_1": "And the last one please.",
-            "low_implicit_incorrect_3_2": "No, please put the Persistence of Memory at the top right position."
+            "low_implicit_incorrect_1_1": ("Visitors need a strong reference point of what they're about to see. Positioning a classical work at the entrance can provide that foundation.", "right_left_middle"),
+            "low_implicit_incorrect_1_2": ("No, I mean, please place the Triumph of Galatea at the top left position.", "right_middle"),
+            "low_implicit_incorrect_2_1": ("Having a peaceful work in the middle can balance the sentiment of the tragic one.", "right_left_middle"),
+            "low_implicit_incorrect_2_2": ("No, I mean, please put the Impression Sunrise at the top middle position.", "right_middle"),
+            "low_implicit_incorrect_3_1": ("And the last one please.", "right_middle"),
+            "low_implicit_incorrect_3_2": ("No, I mean, please put the Persistence of Memory at the top right position.", "right_middle")
         }
-        return mapping.get(msg, None)
+        return mapping.get(msg, (None, None))
 
 def main(args=None):
     rclpy.init(args=args)

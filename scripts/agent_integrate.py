@@ -18,6 +18,9 @@ class IntegratedAgent:
     def __init__(self, expliciteness, interpretation, severity):
         rospy.init_node("integrated_agent", anonymous=True)
 
+        self.takeover_mode = False
+        self.takeover_lock = threading.Lock()
+
         self.expliciteness = expliciteness
         self.interpretation = interpretation
         self.severity = severity
@@ -90,7 +93,16 @@ class IntegratedAgent:
         # ROS subscriber
         rospy.Subscriber("/received_utterance", String, self.on_utterance)
         rospy.Subscriber("/reference_patch", String, self.on_reference_patch)
+        rospy.Subscriber("/wizard_intervene", String, self.on_wizard_intervene)
 
+    def on_wizard_intervene(self, msg):
+        with self.takeover_lock:
+            if msg.data.strip().lower() == "takeover":
+                self.takeover_mode = True
+                rospy.loginfo("[integrated_agent] Takeover mode activated.")
+            elif msg.data.strip().lower() == "stop_takeover":
+                self.takeover_mode = False
+                rospy.loginfo("[integrated_agent] Takeover mode deactivated.")
 
     def on_reference_patch(self, msg):
         raw = msg.data.strip()
@@ -133,6 +145,12 @@ class IntegratedAgent:
         # If implicit + placeholder → wait for patch BEFORE sending to LLM
         if self.expliciteness == "implicit" and contains_deictic(utterance):
             rospy.loginfo("[integrated_agent] Implicit + <wizard_input> → waiting for patch before sending to LLM.")
+            
+            with self.takeover_lock:
+                if self.takeover_mode:
+                    rospy.logwarn("Takeover active, not requesting aruco patch.")
+                    return
+
             self.reference_patch_pub.publish("require_patch")
 
             timeout = 100
@@ -196,6 +214,11 @@ class IntegratedAgent:
             rospy.loginfo(f"[integrated_agent] Verbal response: {verbal}")
             rospy.loginfo(f"[integrated_agent] Action instruction: {instruction}")
             rospy.loginfo(f"[integrated_agent] Plan: {plan}")
+
+            with self.takeover_lock:
+                if self.takeover_mode:
+                    rospy.logwarn("Takeover active, not publishing agent result.")
+                    return
 
             self.verbal_pub.publish(verbal)
             self.action_pub.publish(instruction)

@@ -66,12 +66,12 @@ class SignalCoordinator:
         self.action_instruction = msg.data.strip()
         # rospy.loginfo(f"[action_instruction] {self.action_instruction}")
 
-        if "tube" in self.action_instruction and "place" in self.action_instruction:
-            self.completed_actions.add("tube")
-            rospy.loginfo("[Coordinator] Completed action: tube")
-        elif "30" in self.action_instruction and "powder" in self.action_instruction and "place" in self.action_instruction:
-            self.completed_actions.add("powder")
-            rospy.loginfo("[Coordinator] Completed action: powder")
+        # if "tube" in self.action_instruction and "place" in self.action_instruction:
+        #     self.completed_actions.add("tube")
+        #     rospy.loginfo("[Coordinator] Completed action: tube")
+        # elif "30" in self.action_instruction and "powder" in self.action_instruction and "place" in self.action_instruction:
+        #     self.completed_actions.add("powder")
+        #     rospy.loginfo("[Coordinator] Completed action: powder")
     
         self.evaluate_conditions()
 
@@ -98,7 +98,7 @@ class SignalCoordinator:
     def evaluate_conditions(self):
         rospy.sleep(0.1)  # Allow all statuses to update
 
-        if all(s not in ("received", "failed", "takeover", "need_help", "need_takeover", "start_head", "in_progress", "ready_head") for s in [
+        if all(s not in ("received", "failed", "takeover", "need_help", "need_takeover", "start_head", "in_progress", "ready_head", "stop_takeover") for s in [
             self.script_agent_status,
             self.tts_status,
             self.action_agent_status,
@@ -112,15 +112,15 @@ class SignalCoordinator:
             self.send_listen_signal("stop_listen")
         
         # Trigger script if both tube and powder actions completed and execution finished
-        if not self.script_triggered and {"tube", "powder"}.issubset(self.completed_actions):
+        # if not self.script_triggered and {"tube", "powder"}.issubset(self.completed_actions):
             
-            if self.execution_status == "finished":
-                rospy.loginfo("[Coordinator] Triggering scripted Instructor–Tiago flow.")
-                self.script_trigger_pub.publish("start_head")
-                self.completed_actions.clear()  # Optional: reset if this should only run once
-                self.script_triggered = True
-            else:
-                self.script_trigger_pub.publish("ready_head")
+        #     if self.execution_status == "finished":
+        #         rospy.loginfo("[Coordinator] Triggering scripted Instructor–Tiago flow.")
+        #         self.script_trigger_pub.publish("start_head")
+        #         self.completed_actions.clear()  # Optional: reset if this should only run once
+        #         self.script_triggered = True
+        #     else:
+        #         self.script_trigger_pub.publish("ready_head")
 
 
     def send_listen_signal(self, signal: str):

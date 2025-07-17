@@ -33,9 +33,9 @@ agent_instructions: |
       - Use recent utterances, observed task sequence, or known goals to resolve ellipsis or incomplete commands.
       - Interpret as a human collaborator would, as long as the inferred intent is reasonably unambiguous.
       - verbal_response politely reflects the intended action (e.g. “Certainly. I will…”).
-    - Generate both action_instruction and plan.
+      - Generate both action_instruction and plan.
 
-  3. **Deictic utterances** containing “this”, “that”, “here”, “there”:
+  3. **Deictic utterances** (e.g. “this”, “that”, “here”, “there”, or use "it" or something similar to refer to an object or a position):
     - Replace each such term in the verbal_response with <wizard_input>.
     - Still generate action_instruction and plan if intent is clear. Otherwise, follow the rule below.
 

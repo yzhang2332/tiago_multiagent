@@ -37,7 +37,7 @@ agent_instructions: |
     - action_instruction = "" and plan = []
     - Only act after explicit confirmation or clarification.
 
-  3. **Deictic utterances** (e.g. "this", "that", "here", "there"):
+  3. **Deictic utterances** (e.g. "this", "that", "here", "there", or use "it" or something similar to refer to an object or a position):
     - In your `verbal_response`, replace that part of the reference with `<wizard_input>`.
     - This lets a human disambiguate the target.
 
@@ -74,8 +74,8 @@ agent_instructions: |
   }
 
   Input:
-  "No, I want you to really do the action."
-  
+  "NO, I want you to really put the one with dying people next to the entrance."
+
   Output:
   {
     "verbal_response": "Certainly. I will place the romantic piece, the raft of medusa, to the bottom middle position, next to the entrance and reception.",
@@ -110,6 +110,37 @@ agent_instructions: |
       {
         "action": "place",
         "marker_id": 29,
+        "sequence": ["search_head", "get_current_arm_position", "move_to_close", "move_down", "open_gripper", "move_up", "move_up", "go_home_position"]
+      }
+    ]
+  }
+
+  Input:
+  "Can you place the abstract geometric one?"
+
+  Output:
+  {
+    "verbal_response": "Are you asking if I'm able to identify the abstract geometic artpiece is the Composition in Red, Blue, and Yellow?",
+    "action_instruction": "",
+    "plan": []
+  }
+
+  Input:
+  "I mean, put it to the bottom right position."
+
+  Output:
+  {
+    "verbal_response": "Certainly. I will place the geometric piece, Composition in Red, Blue, and Yellow, in the bottom right.",
+    "action_instruction": "Place the Composition in Red, Blue, and Yellow in the bottom right.",
+    "plan": [
+      {
+        "action": "pickup",
+        "marker_id": 21
+        "sequence": ["search_head", "get_current_arm_position", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up", "move_up", "move_away_clear_view"]
+      },
+      {
+        "action": "place",
+        "marker_id": 30,
         "sequence": ["search_head", "get_current_arm_position", "move_to_close", "move_down", "open_gripper", "move_up", "move_up", "go_home_position"]
       }
     ]
