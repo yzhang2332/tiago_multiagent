@@ -18,6 +18,7 @@ class TTSService():
 
         # Subscribe to the topic that provides text to speak
         rospy.Subscriber("/script_agent/verbal_response", String, self.tts_callback)
+        rospy.Subscriber("/start_listen_signal", String, self.tts_callback)
 
         # Publisher to TTS status
         self.tts_status_pub = rospy.Publisher("/tts_status", String, queue_size=10)

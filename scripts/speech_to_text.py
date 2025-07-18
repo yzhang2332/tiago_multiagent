@@ -31,6 +31,7 @@ class VoiceRecognitionServer:
         # Create a publisher for the recognized text
         self.text_pub = rospy.Publisher('/received_utterance', String, queue_size=10)
         self.listen_pub = rospy.Publisher("/listen_signal", String, queue_size=10)
+        self.listen_signal_pub = rospy.Publisher("/start_listen_signal", String, queue_size=10)
 
         # Audio recording parameters
         self.sample_rate = 16000 # 16000 44100 48000
@@ -163,7 +164,7 @@ class VoiceRecognitionServer:
     
     
     def recognize_speech(self):    
-        
+
         # Record audio until silence
         audio_data = self.record_until_silence()
         if audio_data.size == 0:
@@ -200,10 +201,16 @@ class VoiceRecognitionServer:
     def processing(self):
         text = self.recognize_speech()
         if text:
+            self.listen_flag = False
             self.text_pub.publish(text)
         else:
             rospy.loginfo("No text recognized or error occurred.")
-            self.listen_pub.publish("start_listen")
+            if self.listen_flag:
+                rospy.loginfo("listen_flag is True, restarting listening.")
+                self.listen_pub.publish("start_listen")
+            else:
+                rospy.loginfo("listen_flag is False, stopping listening.")
+                self.listen_pub.publish("stop_listen")
     
 
     def get_mic_array_index(self) -> int:
@@ -232,8 +239,9 @@ class VoiceRecognitionServer:
         while not rospy.is_shutdown():
             if self.listen_flag:
                 rospy.loginfo("Listening triggered.")
+                self.listen_signal_pub.publish("ka")
                 rospy.sleep(0.5)
-                self.listen_flag = False
+                
                 self.processing()
             rate.sleep()
             

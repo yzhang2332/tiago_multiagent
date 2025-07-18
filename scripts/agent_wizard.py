@@ -98,7 +98,7 @@ class SignalCoordinator:
     def evaluate_conditions(self):
         rospy.sleep(0.1)  # Allow all statuses to update
 
-        if all(s not in ("received", "failed", "takeover", "need_help", "need_takeover", "start_head", "in_progress", "ready_head", "stop_takeover") for s in [
+        if all(s not in ("received", "failed", "takeover", "need_help", "need_takeover", "start_head", "in_progress", "ready_head") for s in [
             self.script_agent_status,
             self.tts_status,
             self.action_agent_status,

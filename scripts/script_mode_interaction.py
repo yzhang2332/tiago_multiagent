@@ -116,7 +116,7 @@ class ScriptedInteraction:
         elif condition_key == "low_explicit_incorrect":
             self.script = [
                 ("instructor", "low_explicit_incorrect_1_1", False, None, True),
-                ("tiago", "Do you want me to put the Triumph of Galatea to the bottom middle positioin?", False, None, False),
+                ("tiago", "Do you want me to put the Triumph of Galatea to the bottom middle position?", False, None, False),
                 ("instructor", "low_explicit_incorrect_1_2", False, None, False),
                 ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
                 ("instructor", "low_explicit_incorrect_2_1", False, None, True),
