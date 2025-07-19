@@ -92,56 +92,56 @@ class ScriptedInteraction:
         elif condition_key == "low_explicit_correct":
             self.script = [
                 ("instructor", "low_explicit_correct_1_1", False, None, True),
-                ("tiago", "Do you want me to put the Triumph of Galatea to the top left position?", False, None, False),
+                ("tiago", "Do you want me to put the classical work, Triumph of Galatea, to the top left position?", False, None, False),
                 ("instructor", "low_explicit_correct_1_2", False, None, False),
                 ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
                 ("instructor", "low_explicit_correct_2_1", False, None, True),
-                ("tiago", "Do you want me to put the Impression Sunrise to the top middle position?", False, None, False),
+                ("tiago", "Do you want me to put the peaceful work, Impression Sunrise, to the top middle position?", False, None, False),
                 ("instructor", "low_explicit_correct_2_2", False, None, False),
                 ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
                 ("instructor", "low_explicit_correct_3_1", False, None, True),
-                ("tiago", "Do you want me to put the Persistence of Memory to the top right position?", False, None, False),
+                ("tiago", "Do you want me to put the one with soft watch, Persistence of Memory, to the top right position?", False, None, False),
                 ("instructor", "low_explicit_correct_3_2", False, None, False),
                 ("tiago", "Sure, I will put the Persistence of Memory to the top right position.", True, "pick_place_persistence_memory", True)
             ]
         elif condition_key == "low_implicit_correct":
             self.script = [
                 ("instructor", "low_implicit_correct_1_1", False, None, True),
-                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
+                ("tiago", "Sure. I will put the classical work, Triumph of Galatea, to the top left position.", True, "pick_place_triumph_galatea", True),
                 ("instructor", "low_implicit_correct_2_1", False, None, True),
-                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
+                ("tiago", "Got it. I'll put the peaceful work, Impression Sunrise, to the top middle position.", True, "pick_place_impression_sunrise", True),
                 ("instructor", "low_implicit_correct_3_1", False, None, True),
-                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.", True, "pick_place_persistence_memory", True)
+                ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.", True, "pick_place_persistence_memory", True)
             ]
         elif condition_key == "low_explicit_incorrect":
             self.script = [
                 ("instructor", "low_explicit_incorrect_1_1", False, None, True),
-                ("tiago", "Do you want me to put the Triumph of Galatea to the bottom middle position?", False, None, False),
+                ("tiago", "Do you want me to put the classical work, Triumph of Galatea, to the bottom middle position?", False, None, False),
                 ("instructor", "low_explicit_incorrect_1_2", False, None, False),
                 ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
                 ("instructor", "low_explicit_incorrect_2_1", False, None, True),
-                ("tiago", "Do you want me to replace the Raft of Medusa with the Impression Sunrise in the bottom middle position?", False, None, False),
+                ("tiago", "Do you want me to replace the tragic one, Raft of Medusa, with the peaceful one, Impression Sunrise, in the bottom middle position?", False, None, False),
                 ("instructor", "low_explicit_incorrect_2_2", False, None, False),
                 ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
                 ("instructor", "low_explicit_incorrect_3_1", False, None, True),
                 ("tiago", "Do you want me to put another Impression Sunrise to the top right position?", False, None, False),
                 ("instructor", "low_explicit_incorrect_3_2", False, None, False),
-                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.", True, "pick_place_persistence_memory", True)
+                ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.", True, "pick_place_persistence_memory", True)
             ]
         elif condition_key == "low_implicit_incorrect":
             self.script = [
                 ("instructor", "low_implicit_incorrect_1_1", False, None, True),
-                ("tiago", "Okay, I'll put the Triumph of Galatea to the bottom middle position.", True, "fake_search_head", False), # TODO: fake_search_head
+                ("tiago", "Okay, I'll put the classical work, Triumph of Galatea, to the bottom middle position.", True, "fake_search_head", False), # TODO: fake_search_head
                 ("instructor", "low_implicit_incorrect_1_2", False, None, False),
                 ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
                 ("instructor", "low_implicit_incorrect_2_1", False, None, True),
-                ("tiago", " Sounds like I'm going to replace the Raft of Medusa with the Impression Sunrise.", True, "fake_search_head", False), # TODO: fake_search_head
+                ("tiago", " Sounds like I'm going to replace the tragic one, Raft of Medusa, with the peaceful one, Impression Sunrise.", True, "fake_search_head", False), # TODO: fake_search_head
                 ("instructor", "low_implicit_incorrect_2_2", False, None, False),
                 ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
                 ("instructor", "low_implicit_incorrect_3_1", False, None, True),
                 ("tiago", "I can't put another Impression Sunrise to the top right position. There is only one.", False, None, False),
                 ("instructor", "low_implicit_incorrect_3_2", False, None, False),
-                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.", True, "pick_place_persistence_memory", True)
+                ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.", True, "pick_place_persistence_memory", True)
             ]
 
         rospy.loginfo("[script_mode] ScriptedInteraction node initialised and waiting for start signal.")

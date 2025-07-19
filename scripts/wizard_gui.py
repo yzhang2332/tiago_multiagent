@@ -481,7 +481,7 @@ class SignalCoordinatorGUI:
         tts_frame.pack(fill="x", padx=5, pady=8)
 
         tts_phrases = [
-            ("Tiago Intro", "Helo, I'm Tiago. I'm very happy to work with you today."),
+            ("Tiago Intro", "Hi, I’m Tiago. I’ll be here with you throughout the task. Looking forward to working with you."),
             ("Let's start", "Shall we start? How can I help you?"),
             ("Done", "Done."),
             ("Thank", "Thank you."),
@@ -563,53 +563,53 @@ class SignalCoordinatorGUI:
             ],
             "low_explicit_correct": [
                 ("instructor", "low_explicit_correct_1_1"),
-                ("tiago", "Do you want me to put the Triumph of Galatea to the top left position?"),
+                ("tiago", "Do you want me to put the classical work, Triumph of Galatea, to the top left position?"),
                 ("instructor", "low_explicit_correct_1_2"),
                 ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
                 ("instructor", "low_explicit_correct_2_1"),
-                ("tiago", "Do you want me to put the Impression Sunrise to the top middle position?"),
+                ("tiago", "Do you want me to put the peaceful work, Impression Sunrise, to the top middle position?"),
                 ("instructor", "low_explicit_correct_2_2"),
                 ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
                 ("instructor", "low_explicit_correct_3_1"),
-                ("tiago", "Do you want me to put the Persistence of Memory to the top right position?"),
+                ("tiago", "Do you want me to put the one with soft watch, Persistence of Memory, to the top right position?"),
                 ("instructor", "low_explicit_correct_3_2"),
                 ("tiago", "Sure, I will put the Persistence of Memory to the top right position.")
             ],
             "low_implicit_correct": [
                 ("instructor", "low_implicit_correct_1_1"),
-                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
+                ("tiago", "Sure. I will put the classical work, Triumph of Galatea, to the top left position."),
                 ("instructor", "low_implicit_correct_2_1"),
-                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
+                ("tiago", "Got it. I'll put the peaceful work, Impression Sunrise, to the top middle position."),
                 ("instructor", "low_implicit_correct_3_1"),
-                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.")
+                ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.")
             ],
             "low_explicit_incorrect": [
                 ("instructor", "low_explicit_incorrect_1_1"),
-                ("tiago", "Do you want me to put the Triumph of Galatea to the bottom middle position?"),
+                ("tiago", "Do you want me to put the classical work, Triumph of Galatea, to the bottom middle position?"),
                 ("instructor", "low_explicit_incorrect_1_2"),
                 ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
                 ("instructor", "low_explicit_incorrect_2_1"),
-                ("tiago", "Do you want me to replace the Raft of Medusa with the Impression Sunrise in the bottom middle position?"),
+                ("tiago", "Do you want me to replace the tragic one, Raft of Medusa, with the peaceful one, Impression Sunrise, in the bottom middle position?"),
                 ("instructor", "low_explicit_incorrect_2_2"),
                 ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
                 ("instructor", "low_explicit_incorrect_3_1"),
                 ("tiago", "Do you want me to put another Impression Sunrise to the top right position?"),
                 ("instructor", "low_explicit_incorrect_3_2"),
-                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.")
+                ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.")
             ],
             "low_implicit_incorrect": [
                 ("instructor", "low_implicit_incorrect_1_1"),
-                ("tiago", "Okay, I'll put the Triumph of Galatea to the bottom middle position."),
+                ("tiago", "Okay, I'll put the classical work, Triumph of Galatea, to the bottom middle position."),
                 ("instructor", "low_implicit_incorrect_1_2"),
                 ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
                 ("instructor", "low_implicit_incorrect_2_1"),
-                ("tiago", " Sounds like I'm going to replace the Raft of Medusa with the Impression Sunrise."),
+                ("tiago", " Sounds like I'm going to replace the tragic one, Raft of Medusa, with the peaceful one, Impression Sunrise."),
                 ("instructor", "low_implicit_incorrect_2_2"),
                 ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
                 ("instructor", "low_implicit_incorrect_3_1"),
                 ("tiago", "I can't put another Impression Sunrise to the top right position. There is only one."),
                 ("instructor", "low_implicit_incorrect_3_2"),
-                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.")
+                ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.")
             ]
         }
 
