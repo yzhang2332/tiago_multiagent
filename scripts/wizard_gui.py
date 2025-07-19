@@ -106,10 +106,6 @@ def update_status(label):
     if label in status_labels:
         status_labels[label].config(text=thread_status[label], fg="green" if thread_status[label] == "active" else "grey")
 
-# def select_value(key, value, config_display):
-#     selection[key] = value
-#     update_selected_config(config_display)
-
 def update_selected_config(config_display):
     config_display.config(
         text=f"Expliciteness: {selection['Expliciteness'] or '-'} | "
@@ -186,7 +182,7 @@ class SignalCoordinatorGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Signal Coordinator Monitor")
-        self.root.geometry("1800x1400")
+        self.root.geometry("2000x1400")
         self.root.configure(bg="#f0f0f0")
 
         # ROS publishers
@@ -197,6 +193,9 @@ class SignalCoordinatorGUI:
         self.pub_listen = rospy.Publisher("/listen_signal", String, queue_size=1)
         self.pub_script_mode_status = rospy.Publisher("/script_mode_status", String, queue_size=1)
         self.pub_resume = rospy.Publisher("/script_manual_control", String, queue_size=1)
+        self.pub_verbal = rospy.Publisher("/script_agent/verbal_response", String, queue_size=1)
+        self.pub_remote_tts = rospy.Publisher("/ros1_to_tts", String, queue_size=1)
+
 
         # initialize primitives and markers
         self.aruco_data, self.behavior_data = load_config_by_severity("low")
@@ -240,13 +239,24 @@ class SignalCoordinatorGUI:
 
         self.exp_column = build_experiment_column(main_frame, self)
 
-        self.left_frame = tk.Frame(main_frame, width=800)
+        self.left_frame = tk.Frame(main_frame, width=400)
         self.left_frame.pack(side="left", fill="both", expand=True)
         self.left_frame.pack_propagate(False)
 
-        self.right_frame = tk.LabelFrame(main_frame, text="Wizard Controls", font=("Helvetica", 14, "bold"), padx=8, pady=8, width=700)
-        self.right_frame.pack(side="right", fill="y", padx=10, pady=10)
-        self.right_frame.pack_propagate(False)
+        # Container for right side (split into Wizard + TTS)
+        self.right_container = tk.Frame(main_frame)
+        self.right_container.pack(side="right", fill="y", padx=10, pady=10)
+
+        # Wizard controls in the left half of right side
+        self.wizard_frame = tk.LabelFrame(self.right_container, text="Wizard Controls", font=("Helvetica", 14, "bold"), padx=8, pady=8, width=600)
+        self.wizard_frame.pack(side="left", fill="y", padx=(0, 10))
+        self.wizard_frame.pack_propagate(False)
+
+        # TTS buttons in the right half of right side
+        self.tts_frame_container = tk.LabelFrame(self.right_container, text="All TTS Buttons", font=("Helvetica", 14, "bold"), padx=8, pady=8, width=500)
+        self.tts_frame_container.pack(side="right", fill="y")
+        self.tts_frame_container.pack_propagate(False)
+
 
         for section_title, topics in self.sections.items():
             self.add_section(section_title, topics)
@@ -291,6 +301,33 @@ class SignalCoordinatorGUI:
                             bg="#e0e0ff", relief="raised")
             btn.pack(fill="x", pady=1)
             self.marker_buttons.append((btn, mid))
+    
+    def update_scripted_tts_buttons(self):
+        for widget in self.script_tts_frame.winfo_children():
+            widget.destroy()
+
+        exp = selection.get("Expliciteness") or "explicit"
+        interp = selection.get("Interpretation") or "correct"
+        severity = selection.get("Severity") or "high"
+        condition_key = f"{severity}_{exp}_{interp}"
+        script_lines = self.script_map.get(condition_key, [])
+
+        instructor_idx = 0
+        tiago_idx = 0
+
+        for role, text in script_lines:
+            if role == "instructor":
+                btn = tk.Button(self.script_tts_frame, text=f"Instructor: {text}", font=("Helvetica", 11),
+                                command=lambda t=text: self.send_remote_tts_phrase(t),
+                                bg="#e6f7ff", relief="raised", anchor="w", width=40)
+                btn.grid(row=instructor_idx, column=0, padx=2, pady=2, sticky="ew")
+                instructor_idx += 1
+            elif role == "tiago":
+                btn = tk.Button(self.script_tts_frame, text=f"Tiago: {text}", font=("Helvetica", 11),
+                                command=lambda t=text: self.send_tts_phrase(t),
+                                bg="#fffbe6", relief="raised", anchor="w", width=40)
+                btn.grid(row=tiago_idx, column=1, padx=2, pady=2, sticky="ew")
+                tiago_idx += 1
 
     def select_value(self, key, value, config_display):
         selection[key] = value
@@ -299,6 +336,8 @@ class SignalCoordinatorGUI:
         if key == "Severity":
             self.aruco_data, self.behavior_data = load_config_by_severity(value)
             self.update_action_marker_buttons()
+        
+        self.update_scripted_tts_buttons()
 
     
     def add_section(self, title, topics):
@@ -331,7 +370,7 @@ class SignalCoordinatorGUI:
 
             if is_long_text:
                 text_widget = tk.Text(
-                    label_frame, height=5, wrap="word", font=font,
+                    label_frame, height=10, wrap="word", font=font,
                     bg="#fdfdfd", relief="solid", bd=1
                 )
                 text_widget.pack(fill="x", expand=True, side="left")
@@ -348,7 +387,7 @@ class SignalCoordinatorGUI:
 
     def add_wizard_controls(self):
         # --- Start/Stop Listening Buttons ---
-        listen_row = tk.Frame(self.right_frame)
+        listen_row = tk.Frame(self.wizard_frame)
         listen_row.pack(pady=(4, 4), fill="x")
 
         tk.Button(
@@ -361,14 +400,8 @@ class SignalCoordinatorGUI:
             font=("Helvetica", 12, "bold"), command=self.send_stop_listening
         ).pack(side="left", padx=5, fill="x", expand=True)
 
-        # --- Takeover ---
-        tk.Button(
-            self.right_frame, text="Takeover", bg="#d9534f", fg="white",
-            font=("Helvetica", 12, "bold"), command=self.send_takeover
-        ).pack(pady=4, fill="x")
-
         # === Grouped Action + Marker Selection Side by Side ===
-        action_marker_frame = tk.Frame(self.right_frame)
+        action_marker_frame = tk.Frame(self.wizard_frame)
         action_marker_frame.pack(pady=10, fill="x")
 
         # --- Actions ---
@@ -400,8 +433,14 @@ class SignalCoordinatorGUI:
             btn.pack(fill="x", pady=1)
             self.marker_buttons.append((btn, mid))
 
+        # --- Takeover ---
+        tk.Button(
+            self.wizard_frame, text="Takeover", bg="#d9534f", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.send_takeover
+        ).pack(pady=4, fill="x")
+
         # --- Update & Verbal Patch Buttons Side by Side ---
-        button_row = tk.Frame(self.right_frame)
+        button_row = tk.Frame(self.wizard_frame)
         button_row.pack(pady=(12, 8), fill="x")
 
         tk.Button(
@@ -418,26 +457,173 @@ class SignalCoordinatorGUI:
 
         # --- Stop Takeover Button ---
         tk.Button(
-            self.right_frame, text="Stop Takeover", bg="#f0ad4e", fg="white",
+            self.wizard_frame, text="Stop Takeover", bg="#f0ad4e", fg="white",
             font=("Helvetica", 12, "bold"), command=self.send_stop_takeover
+        ).pack(pady=(0, 12), fill="x")
+
+        # --- Start Head Button ---
+        tk.Button(
+            self.wizard_frame, text="Start Head", bg="#6f42c1", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.send_start_head
         ).pack(pady=(0, 12), fill="x")
 
         # --- Resume Progress Button ---
         tk.Button(
-            self.right_frame, text="Resume Progress", bg="#20c997", fg="white",
+            self.wizard_frame, text="Resume Progress", bg="#20c997", fg="white",
             font=("Helvetica", 12, "bold"), command=self.send_resume_progress
-        ).pack(pady=(0, 12), fill="x")
-
-
-        # --- Start Head Button ---
-        tk.Button(
-            self.right_frame, text="Start Head", bg="#6f42c1", fg="white",
-            font=("Helvetica", 12, "bold"), command=self.send_start_head
         ).pack(pady=(0, 12), fill="x")
 
         self.action_frame = action_frame
         self.marker_frame = marker_frame
 
+        # --- TTS Buttons ---
+        tts_frame = tk.LabelFrame(self.tts_frame_container, text="TTS", font=("Helvetica", 12, "bold"), padx=4, pady=4)
+        tts_frame.pack(fill="x", padx=5, pady=8)
+
+        tts_phrases = [
+            ("Tiago Intro", "Helo, I'm Tiago. I'm very happy to work with you today."),
+            ("Let's start", "Shall we start? How can I help you?"),
+            ("Done", "Done."),
+            ("Thank", "Thank you."),
+            ("Next", "What should I do next?"),
+        ]
+
+        remote_tts_phrases = [
+            ("Diego Intro", "introduction")
+        ]
+
+        # 两列布局
+        max_len = max(len(tts_phrases), len(remote_tts_phrases))
+        for i in range(max_len):
+            # Tiago TTS
+            if i < len(tts_phrases):
+                btn_text, tts_text = tts_phrases[i]
+                btn = tk.Button(tts_frame, text=btn_text, font=("Helvetica", 11),
+                                command=lambda t=tts_text: self.send_tts_phrase(t),
+                                bg="#fffbe6", relief="raised", anchor="w", width=22)
+                btn.grid(row=i, column=0, padx=2, pady=2, sticky="ew")
+            # Diego TTS
+            if i < len(remote_tts_phrases):
+                btn_text, tts_text = remote_tts_phrases[i]
+                btn = tk.Button(tts_frame, text=btn_text, font=("Helvetica", 11),
+                                command=lambda t=tts_text: self.send_remote_tts_phrase(t),
+                                bg="#e6f7ff", relief="raised", anchor="w", width=22)
+                btn.grid(row=i, column=1, padx=2, pady=2, sticky="ew")
+
+        self.script_map = {
+            "high_explicit_correct": [
+                ("instructor", "high_explicit_correct_1_1"),
+                ("tiago", "Do you want me to hold the test tube for you?"),
+                ("instructor", "high_explicit_correct_1_2"),
+                ("tiago", "Sure. I will hold the test tube for you."),
+                ("instructor", "high_explicit_correct_2_1"),
+                ("tiago", "Do you want me to shake the test tube?"),
+                ("instructor", "high_explicit_correct_2_2"),
+                ("tiago", "Got it. I'll shake the test tube."),
+                ("instructor", "high_explicit_correct_3_1"),
+                ("tiago", "Do you want me to shake the test tube again?"),
+                ("instructor", "high_explicit_correct_3_2"),
+                ("tiago", "Sure, I will shake the test tube again")
+            ],
+            "high_implicit_correct": [
+                ("instructor", "high_implicit_correct_1_1"),
+                ("tiago", "Sure. I will hold the test tube for you."),
+                ("instructor", "high_implicit_correct_2_1"),
+                ("tiago", "Got it. I'll shake the test tube."),
+                ("instructor", "high_implicit_correct_3_1"),
+                ("tiago", "Sure, I will shake the test tube again")
+            ],
+            "high_explicit_incorrect": [
+                ("instructor", "high_explicit_incorrect_1_1"),
+                ("tiago", "Do you want me to hold your arm when you pour the powder?"),
+                ("instructor", "high_explicit_incorrect_1_2"),
+                ("tiago", "Sure. I will hold the test tube for you."),
+                ("instructor", "high_explicit_incorrect_2_1"),
+                ("tiago", " Did we do it wrong? Should we start over?"),
+                ("instructor", "high_explicit_incorrect_2_2"),
+                ("tiago", "Got it. I'll shake the test tube."),
+                ("instructor", "high_explicit_incorrect_3_1"),
+                ("tiago", "Want to add another 30 grams of powder"),
+                ("instructor", "high_explicit_incorrect_3_2"),
+                ("tiago", "Sure, I will shake the test tube again")
+            ],
+            "high_implicit_incorrect": [
+                ("instructor", "high_implicit_incorrect_1_1"),
+                ("tiago", "Okay, I'll hold your arm when you pour the powder."),
+                ("instructor", "high_implicit_incorrect_1_2"),
+                ("tiago", "Sure. I will hold the test tube for you."),
+                ("instructor", "high_implicit_incorrect_2_1"),
+                ("tiago", " Sounds like we did it wrong. Let's start over."),
+                ("instructor", "high_implicit_incorrect_2_2"),
+                ("tiago", "Got it. I'll shake the test tube."),
+                ("instructor", "high_implicit_incorrect_3_1"),
+                ("tiago", "Sure, I'll add another 30 grams of powder"),
+                ("instructor", "high_implicit_incorrect_3_2"),
+                ("tiago", "Sure, I will shake the test tube again")
+            ],
+            "low_explicit_correct": [
+                ("instructor", "low_explicit_correct_1_1"),
+                ("tiago", "Do you want me to put the Triumph of Galatea to the top left position?"),
+                ("instructor", "low_explicit_correct_1_2"),
+                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
+                ("instructor", "low_explicit_correct_2_1"),
+                ("tiago", "Do you want me to put the Impression Sunrise to the top middle position?"),
+                ("instructor", "low_explicit_correct_2_2"),
+                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
+                ("instructor", "low_explicit_correct_3_1"),
+                ("tiago", "Do you want me to put the Persistence of Memory to the top right position?"),
+                ("instructor", "low_explicit_correct_3_2"),
+                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.")
+            ],
+            "low_implicit_correct": [
+                ("instructor", "low_implicit_correct_1_1"),
+                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
+                ("instructor", "low_implicit_correct_2_1"),
+                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
+                ("instructor", "low_implicit_correct_3_1"),
+                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.")
+            ],
+            "low_explicit_incorrect": [
+                ("instructor", "low_explicit_incorrect_1_1"),
+                ("tiago", "Do you want me to put the Triumph of Galatea to the bottom middle position?"),
+                ("instructor", "low_explicit_incorrect_1_2"),
+                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
+                ("instructor", "low_explicit_incorrect_2_1"),
+                ("tiago", "Do you want me to replace the Raft of Medusa with the Impression Sunrise in the bottom middle position?"),
+                ("instructor", "low_explicit_incorrect_2_2"),
+                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
+                ("instructor", "low_explicit_incorrect_3_1"),
+                ("tiago", "Do you want me to put another Impression Sunrise to the top right position?"),
+                ("instructor", "low_explicit_incorrect_3_2"),
+                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.")
+            ],
+            "low_implicit_incorrect": [
+                ("instructor", "low_implicit_incorrect_1_1"),
+                ("tiago", "Okay, I'll put the Triumph of Galatea to the bottom middle position."),
+                ("instructor", "low_implicit_incorrect_1_2"),
+                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
+                ("instructor", "low_implicit_incorrect_2_1"),
+                ("tiago", " Sounds like I'm going to replace the Raft of Medusa with the Impression Sunrise."),
+                ("instructor", "low_implicit_incorrect_2_2"),
+                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
+                ("instructor", "low_implicit_incorrect_3_1"),
+                ("tiago", "I can't put another Impression Sunrise to the top right position. There is only one."),
+                ("instructor", "low_implicit_incorrect_3_2"),
+                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.")
+            ]
+        }
+
+        self.script_tts_frame = tk.LabelFrame(self.tts_frame_container, text="Scripted TTS", font=("Helvetica", 12, "bold"), padx=4, pady=4)
+        self.script_tts_frame.pack(fill="x", padx=5, pady=8)
+
+        self.update_scripted_tts_buttons()
+
+    def send_tts_phrase(self, text):
+        self.pub_verbal.publish(text)
+
+    def send_remote_tts_phrase(self, text):
+        self.pub_remote_tts.publish(text)
+    
     def send_start_head(self):
         self.pub_script_mode_status.publish("start_head")
 
@@ -581,8 +767,6 @@ class SignalCoordinatorGUI:
                 widget.config(text=content, fg=color)
 
         self.root.after(200, self.refresh_gui)
-
-
 
 def ros_thread():
     rospy.init_node("signal_coordinator_gui", anonymous=True, disable_signals=True)
