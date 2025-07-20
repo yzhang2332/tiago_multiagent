@@ -631,7 +631,7 @@ def move_away_clear_view(): # TODO: avoid arm blocking the view
     home_joint_list = [0.42, 0.9, -1.24, 1.49, 0.95, -1.39, 0.26]
 
     # ! execution
-    move_arm_joints(home_joint_list, 3.0)
+    move_arm_joints(home_joint_list, 4.0)
     rospy.loginfo("Clear view position reached.")
     rospy.sleep(0.2)
 

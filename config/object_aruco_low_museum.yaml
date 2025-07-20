@@ -1,0 +1,22 @@
+markers:
+- id: 20
+  name: Raft of the Medusa
+- id: 21
+  name: Composition in Red, Blue, Yellow
+- id: 22
+  name: Triumph of Galatea
+- id: 23
+  name: Impression Sunrise
+- id: 24
+  name: Persistence of Memory
+- id: 26
+  name: top left, opposite of and near the entrance and reception
+- id: 27
+  name: top right, near the exit, opposite of bottom left
+- id: 28
+  name: top middle, opposite of bottom middle
+- id: 29
+  name: Bottom middle, next to and near the entrance and reception, opposite of top
+    middle
+- id: 30
+  name: Bottom right, near the exit, opposite of top right

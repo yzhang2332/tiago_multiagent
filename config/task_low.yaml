@@ -1,110 +1,80 @@
-description: Assist a participant in arranging five artworks on a exhibition grid
-  layout with five positions. The task involves positioning artworks according to
-  aesthetic cues provided by both participant and instructor and verifying the floor
-  plan's tracking number.
-steps:
-- action: Verbally offer help with layout arrangement and await placement instructions.
-  example_triggers:
-  - let’s figure out where each one should go
-  - ready to begin?
-  - should we start?
-  - let's start
-  id: task_start
-  order: 1
-  requirement: Participant expresses intent to start arranging the exhibition.
-- action: Place The Raft of the Medusa artwork in the position that participant wants
-    on the grid.
-  example_triggers:
-  - Dying people
-  - Romantic
-  - Shipwreck
-  - Dark
-  - Dramatic
-  - Medusa raft
-  - French
-  - Géricault
-  - Raft of Medusa
-  - Political scandal
-  id: pick_place_raft_dying
-  order: 2
-  requirement: Participant selects The Raft of the Medusa as the artwork to place.
-- action: Place The Composition in Red, Blue, Yellow artwork in the position that
-    participant wants on the grid.
-  example_triggers:
-  - Grid
-  - Squares
-  - Lines
-  - Tetris
-  - Red, blue, yellow
-  - Mondrian
-  - Abstract
-  - Geometric
-  - Morden
-  - Composition II
-  - Neoplastic
-  - Piet Mondrian
-  id: pick_place_abstract_squares
-  order: 3
-  requirement: Participant selects The Composition in Red, Blue, Yellow as the artwork
-    to place.
-- action: Place The Triumph of Galatea artwork in the position that participant wants
-    on the grid.
-  example_triggers:
-  - Flying babies
-  - Naked lady
-  - Angels
-  - Raphael
-  - Renaissance
-  - Mythology
-  - Classical
-  - The Triumph of Galatea
-  - Villa Farnesina
-  - High Renaissance
-  - Neoplatonic
-  id: pick_place_baby_angel
-  order: 4
-  requirement: Participant selects The Triumph of Galatea as the artwork to place.
-- action: Place The Impression Sunrise artwork in the position that participant wants
-    on the grid.
-  example_triggers:
-  - Blurry sunrise
-  - Orange boats
-  - Fuzzy water
-  - Natural scenery
-  - Monet
-  - Impressionist
-  - Impression Sunrise
-  - Le Havre
-  - Plein air
-  id: pick_place_monet_sunrise
-  order: 5
-  requirement: Participant selects The Impression Sunrise as the artwork to place.
-- action: Place The Persistence of Memory artwork in the position that participant
-    wants on the grid.
-  example_triggers:
-  - Melting clocks
-  - Droopy watches
-  - Dreamy
-  - Dali
-  - Surrealist
-  - Famous clocks
-  - The Persistence of Memory
-  - Soft watches
-  - Paranoiac-critical
-  id: pick_place_melt_clocks
-  order: 6
-  requirement: Participant selects The Persistence of Memory as the artwork to place.
-- action: Read aloud the layout tracking number 2234.
-  example_triggers:
-  - did you document it?
-  - is it saved?
-  - did you log the layout?
-  - is the layout recorded?
-  - the layout should be saved for future use
-  - can we refer to it later?
-  id: layout_document_save_tracking
-  order: 7
-  requirement: Participant asks whether the layout has been documented for future
-    reference.
 task_id: low_risk
-title: Art Exhibition Layout Arrangement
+title: Grocery Display Layout Arrangement
+description: Assist a participant in arranging five grocery items on a store display layout with five positions. The task involves positioning items based on display logic and verbal cues, while also confirming the layout documentation number.
+steps:
+  - id: task_start
+    order: 1
+    example_triggers:
+      - "let’s figure out where each one should go"
+      - "ready to begin?"
+      - "should we start?"
+      - "let's start stocking"
+    requirement: Participant expresses intent to begin arranging the grocery items.
+    action: Verbally offer help with stocking arrangement and await placement instructions.
+
+  - id: layout_document_save_tracking
+    order: 2
+    example_triggers:
+      - "did you document it?"
+      - "is it saved?"
+      - "did you log the layout?"
+      - "is the display recorded?"
+      - "the layout should be saved for later"
+      - "can we refer to this later?"
+    requirement: Participant asks whether the item layout has been documented for future reference.
+    action: Read aloud the layout tracking number 2234.
+
+  - id: pick_place_onion
+    order: 3
+    example_triggers:
+      - "onion"
+      - "yellow onion"
+      - "root vegetable"
+    requirement: Participant selects onion as the item to place.
+    action: Place the onion in the position the participant specifies on the display.
+
+  - id: pick_place_pineapple
+    order: 4
+    example_triggers:
+      - "pineapple"
+      - "spiky"
+      - "tropical"
+      - "sweet"
+      - "juicy fruit"
+    requirement: Participant selects pineapple as the item to place.
+    action: Place the pineapple in the position the participant specifies on the display.
+
+  - id: pick_place_durian
+    order: 5
+    example_triggers:
+      - "durian"
+      - "spiky fruit"
+      - "very smelly"
+      - "southeast asian fruit"
+      - "strong smell"
+      - "controversial taste"
+    requirement: Participant selects durian as the item to place.
+    action: Place the durian in the position the participant specifies on the display.
+
+  - id: pick_place_potato
+    order: 6
+    example_triggers:
+      - "potato"
+      - "brown root"
+      - "starchy"
+      - "mashed or fried"
+      - "classic vegetable"
+    requirement: Participant selects potato as the item to place.
+    action: Place the potato in the position the participant specifies on the display.
+
+  - id: pick_place_popcorn
+    order: 7
+    example_triggers:
+      - "popcorn"
+      - "snack"
+      - "buttery"
+      - "salty treat"
+      - "movie snack"
+      - "strong smell"
+    requirement: Participant selects popcorn as the item to place.
+    action: Place the popcorn in the position the participant specifies on the display.

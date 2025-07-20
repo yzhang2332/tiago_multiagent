@@ -583,19 +583,33 @@ class SignalCoordinatorGUI:
                 ("instructor", "low_implicit_correct_3_1"),
                 ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.")
             ],
+            # "low_explicit_incorrect": [
+            #     ("instructor", "low_explicit_incorrect_1_1"),
+            #     ("tiago", "Do you want me to put the classical work, Triumph of Galatea, to the bottom middle position?"),
+            #     ("instructor", "low_explicit_incorrect_1_2"),
+            #     ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
+            #     ("instructor", "low_explicit_incorrect_2_1"),
+            #     ("tiago", "Do you want me to replace the tragic one, Raft of Medusa, with the peaceful one, Impression Sunrise, in the bottom middle position?"),
+            #     ("instructor", "low_explicit_incorrect_2_2"),
+            #     ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
+            #     ("instructor", "low_explicit_incorrect_3_1"),
+            #     ("tiago", "Do you want me to put another Impression Sunrise to the top right position?"),
+            #     ("instructor", "low_explicit_incorrect_3_2"),
+            #     ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.")
+            # ],
             "low_explicit_incorrect": [
                 ("instructor", "low_explicit_incorrect_1_1"),
-                ("tiago", "Do you want me to put the classical work, Triumph of Galatea, to the bottom middle position?"),
+                ("tiago", "Do you want me to put popcorn near the exit?"),
                 ("instructor", "low_explicit_incorrect_1_2"),
-                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
+                ("tiago", "Sure. I will put durians to the top left position."),
                 ("instructor", "low_explicit_incorrect_2_1"),
-                ("tiago", "Do you want me to replace the tragic one, Raft of Medusa, with the peaceful one, Impression Sunrise, in the bottom middle position?"),
+                ("tiago", "Do you want me to replace pineapples with potatos in the bottom right position?"),
                 ("instructor", "low_explicit_incorrect_2_2"),
-                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
+                ("tiago", "Got it. I'll put potatos to the top middle position."),
                 ("instructor", "low_explicit_incorrect_3_1"),
-                ("tiago", "Do you want me to put another Impression Sunrise to the top right position?"),
+                ("tiago", "Do you want me to put the last item, popcorn, also to the top middle position?"),
                 ("instructor", "low_explicit_incorrect_3_2"),
-                ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.")
+                ("tiago", "Sure, I will put the popcorn to the top left position.")
             ],
             "low_implicit_incorrect": [
                 ("instructor", "low_implicit_incorrect_1_1"),
@@ -674,10 +688,10 @@ class SignalCoordinatorGUI:
         self.pub_intervene.publish("takeover")
     
     def send_stop_takeover(self):
-        pub = rospy.Publisher("/execution_status", String, queue_size=1)
-        rospy.sleep(0.1)
-        pub.publish("finished")
+        # pub = rospy.Publisher("/execution_status", String, queue_size=1)
+        # rospy.sleep(0.1)
         self.pub_intervene.publish("stop_takeover")
+        # pub.publish("finished")
 
     def update_and_takeover(self):
         self.send_takeover()

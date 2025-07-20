@@ -114,19 +114,33 @@ class ScriptedInteraction:
                 ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.", True, "pick_place_persistence_memory", True)
             ]
         elif condition_key == "low_explicit_incorrect":
+            # self.script = [
+            #     ("instructor", "low_explicit_incorrect_1_1", False, None, True),
+            #     ("tiago", "Do you want me to put the classical work, Triumph of Galatea, to the bottom middle position?", False, None, False),
+            #     ("instructor", "low_explicit_incorrect_1_2", False, None, False),
+            #     ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
+            #     ("instructor", "low_explicit_incorrect_2_1", False, None, True),
+            #     ("tiago", "Do you want me to replace the tragic one, Raft of Medusa, with the peaceful one, Impression Sunrise, in the bottom middle position?", False, None, False),
+            #     ("instructor", "low_explicit_incorrect_2_2", False, None, False),
+            #     ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
+            #     ("instructor", "low_explicit_incorrect_3_1", False, None, True),
+            #     ("tiago", "Do you want me to put another Impression Sunrise to the top right position?", False, None, False),
+            #     ("instructor", "low_explicit_incorrect_3_2", False, None, False),
+            #     ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.", True, "pick_place_persistence_memory", True)
+            # ]
             self.script = [
                 ("instructor", "low_explicit_incorrect_1_1", False, None, True),
-                ("tiago", "Do you want me to put the classical work, Triumph of Galatea, to the bottom middle position?", False, None, False),
+                ("tiago", "Do you want me to put popcorn near the exit?", False, None, False),
                 ("instructor", "low_explicit_incorrect_1_2", False, None, False),
-                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position.", True, "pick_place_triumph_galatea", True),
+                ("tiago", "Sure. I will put durians to the top left position.", True, "pick_place_durian", True),
                 ("instructor", "low_explicit_incorrect_2_1", False, None, True),
-                ("tiago", "Do you want me to replace the tragic one, Raft of Medusa, with the peaceful one, Impression Sunrise, in the bottom middle position?", False, None, False),
+                ("tiago", "Do you want me to replace pineapples with potatos in the bottom right position?", False, None, False),
                 ("instructor", "low_explicit_incorrect_2_2", False, None, False),
-                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position.", True, "pick_place_impression_sunrise", True),
+                ("tiago", "Got it. I'll put potatos to the top middle position.", True, "pick_place_potato", True),
                 ("instructor", "low_explicit_incorrect_3_1", False, None, True),
-                ("tiago", "Do you want me to put another Impression Sunrise to the top right position?", False, None, False),
+                ("tiago", "Do you want me to put the last item, popcorn, also to the top middle position?", False, None, False),
                 ("instructor", "low_explicit_incorrect_3_2", False, None, False),
-                ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.", True, "pick_place_persistence_memory", True)
+                ("tiago", "Sure, I will put the popcorn to the top left position.", True, "pick_place_popcorn", True)
             ]
         elif condition_key == "low_implicit_incorrect":
             self.script = [
@@ -497,6 +511,90 @@ class ScriptedInteraction:
                         '{"plan": ['
                         '{"action": "fake_search_head", "marker_id": null, "sequence": ['
                         '"fake_search_head"]}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "pick_place_durian":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "pickup", "marker_id": 24, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_open", '
+                            '"detect_aruco_with_gripper_camera", '
+                            '"move_down", '
+                            '"close_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"move_away_clear_view"'
+                        ']}, '
+                        '{"action": "place", "marker_id": 27, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_close", '
+                            '"move_down", '
+                            '"open_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"go_home_position"'
+                        ']}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "pick_place_potato":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "pickup", "marker_id": 23, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_open", '
+                            '"detect_aruco_with_gripper_camera", '
+                            '"move_down", '
+                            '"close_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"move_away_clear_view"'
+                        ']}, '
+                        '{"action": "place", "marker_id": 28, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_close", '
+                            '"move_down", '
+                            '"open_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"go_home_position"'
+                        ']}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "pick_place_popcorn":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "pickup", "marker_id": 22, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_open", '
+                            '"detect_aruco_with_gripper_camera", '
+                            '"move_down", '
+                            '"close_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"move_away_clear_view"'
+                        ']}, '
+                        '{"action": "place", "marker_id": 26, "sequence": ['
+                            '"search_head", '
+                            '"get_current_arm_position", '
+                            '"move_to_close", '
+                            '"move_down", '
+                            '"open_gripper", '
+                            '"move_up", '
+                            '"move_up", '
+                            '"go_home_position"'
+                        ']}'
                         ']}'
                     )
                     self.action_pub.publish(plan_msg)

@@ -1,0 +1,124 @@
+{
+  "task_id": "low_risk",
+  "title": "Art Exhibition Layout Arrangement",
+  "description": "Assist a participant in arranging five artworks on a exhibition grid layout with five positions. The task involves positioning artworks according to aesthetic cues provided by both participant and instructor and verifying the floor plan's tracking number.",
+  "steps": [
+    {
+      "id": "task_start",
+      "order": 1,
+      "example_triggers": [
+        "let’s figure out where each one should go",
+        "ready to begin?",
+        "should we start?",
+        "let's start"
+      ],
+      "requirement": "Participant expresses intent to start arranging the exhibition.",
+      "action": "Verbally offer help with layout arrangement and await placement instructions."
+    },
+    {
+      "id": "pick_place_raft_dying",
+      "order": 2,
+      "example_triggers": [
+        "Dying people",
+        "Romantic",
+        "Shipwreck",
+        "Dark",
+        "Dramatic",
+        "Medusa raft",
+        "French",
+        "Géricault",
+        "Raft of Medusa",
+        "Political scandal"
+      ],
+      "requirement": "Participant selects The Raft of the Medusa as the artwork to place.",
+      "action": "Place The Raft of the Medusa artwork in the position that participant wants on the grid."
+    },
+    {
+      "id": "pick_place_abstract_squares",
+      "order": 3,
+      "example_triggers": [
+        "Grid",
+        "Squares",
+        "Lines",
+        "Tetris",
+        "Red, blue, yellow",
+        "Mondrian",
+        "Abstract",
+        "Geometric",
+        "Morden",
+        "Composition II",
+        "Neoplastic",
+        "Piet Mondrian"
+      ],
+      "requirement": "Participant selects The Composition in Red, Blue, Yellow as the artwork to place.",
+      "action": "Place The Composition in Red, Blue, Yellow artwork in the position that participant wants on the grid."
+    },
+    {
+      "id": "pick_place_triumph_galatea",
+      "order": 4,
+      "example_triggers": [
+        "Flying babies",
+        "Naked lady",
+        "Angels",
+        "Raphael",
+        "Renaissance",
+        "Mythology",
+        "Classical",
+        "The Triumph of Galatea",
+        "Villa Farnesina",
+        "High Renaissance",
+        "Neoplatonic"
+      ],
+      "requirement": "Participant selects The Triumph of Galatea as the artwork to place.",
+      "action": "Place The Triumph of Galatea artwork in the position that participant wants on the grid."
+    },
+    {
+      "id": "pick_place_impression_sunrise",
+      "order": 5,
+      "example_triggers": [
+        "Blurry sunrise",
+        "Orange boats",
+        "Fuzzy water",
+        "Natural scenery",
+        "Monet",
+        "Impressionist",
+        "Impression Sunrise",
+        "Le Havre",
+        "Plein air"
+      ],
+      "requirement": "Participant selects The Impression Sunrise as the artwork to place.",
+      "action": "Place The Impression Sunrise artwork in the position that participant wants on the grid."
+    },
+    {
+      "id": "pick_place_persistence_memory",
+      "order": 6,
+      "example_triggers": [
+        "Melting clocks",
+        "Droopy watches",
+        "Dreamy",
+        "Dali",
+        "Surrealist",
+        "Famous clocks",
+        "The Persistence of Memory",
+        "Soft watches",
+        "Paranoiac-critical"
+      ],
+      "requirement": "Participant selects The Persistence of Memory as the artwork to place.",
+      "action": "Place The Persistence of Memory artwork in the position that participant wants on the grid."
+    },
+    {
+      "id": "layout_document_save_tracking",
+      "order": 7,
+      "example_triggers": [
+        "did you document it?",
+        "is it saved?",
+        "did you log the layout?",
+        "is the layout recorded?",
+        "the layout should be saved for future use",
+        "can we refer to it later?"
+      ],
+      "requirement": "Participant asks whether the layout has been documented for future reference.",
+      "action": "Read aloud the layout tracking number 2234."
+    }
+  ]
+}

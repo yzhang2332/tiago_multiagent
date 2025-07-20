@@ -1,0 +1,63 @@
+meta_actions:
+  pickup:
+    description: Pick up a target object using gripper without placing it
+    sequence:
+    - search_head
+    - get_current_arm_position
+    - move_to_open
+    - detect_aruco_with_gripper_camera
+    - move_down
+    - close_gripper
+    - move_up
+    - move_up
+    - move_away_clear_view
+  place:
+    description: Place the held object at the target location and put it down
+    sequence:
+    - search_head
+    - get_current_arm_position
+    - move_to_close
+    - move_down
+    - open_gripper
+    - move_up
+    - move_up
+    - go_home_position
+  release:
+    description: Release the held object
+    sequence:
+    - get_current_arm_position
+    - open_gripper
+    - move_up
+    - move_up
+    - go_home_position
+primitives:
+  close_gripper:
+    description: Close the gripper
+  detect_aruco_with_gripper_camera:
+    description: Use the gripper camera to detect an ArUco marker
+  get_current_arm_position:
+    description: Update current arm position
+  go_home_position:
+    description: Move the arm to the home position
+  move_away_clear_view:
+    description: Move arm away to clear robot's camera's view.
+  move_backward:
+    description: Move the gripper backward a bit
+  move_down:
+    description: Lower the gripper vertically a bit
+  move_forward:
+    description: Move the gripper forward a bit
+  move_left:
+    description: Move the gripper left a bit
+  move_righ:
+    description: Move the gripper right a bit
+  move_to_close:
+    description: Move to the target position with closed gripper
+  move_to_open:
+    description: Move to the target position with open gripper
+  move_up:
+    description: Raise the gripper vertically a bit
+  open_gripper:
+    description: Open the gripper
+  search_head:
+    description: Pan/tilt head to search for ArUco marker

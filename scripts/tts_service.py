@@ -42,7 +42,7 @@ class TTSService():
         goal.rawtext.lang_id = "en_GB"  # Use British English
         self.tts_client.send_goal_and_wait(goal)
 
-        rospy.sleep(0.2)
+        # rospy.sleep(0.2)
 
         # After TTS is done, publish "finished"
         self.tts_status_pub.publish("finished")
