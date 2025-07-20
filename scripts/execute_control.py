@@ -682,7 +682,7 @@ def reach_forward():
 
     move_forward(step=0.2, duration=4.0)
 
-    go_home_position()
+    # go_home_position()
 
 def shake_head():
     global interrupted

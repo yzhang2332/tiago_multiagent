@@ -601,7 +601,7 @@ class SignalCoordinatorGUI:
                 ("instructor", "low_explicit_incorrect_1_1"),
                 ("tiago", "Do you want me to put popcorn near the exit?"),
                 ("instructor", "low_explicit_incorrect_1_2"),
-                ("tiago", "Sure. I will put durians to the top left position."),
+                ("tiago", "Sure. I will put durians to the top right position."),
                 ("instructor", "low_explicit_incorrect_2_1"),
                 ("tiago", "Do you want me to replace pineapples with potatos in the bottom right position?"),
                 ("instructor", "low_explicit_incorrect_2_2"),
