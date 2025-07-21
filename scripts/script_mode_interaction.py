@@ -38,15 +38,15 @@ class ScriptedInteraction:
         if condition_key == "high_explicit_correct":
             self.script = [
                 ("instructor", "high_explicit_correct_1_1", False, None, True),
-                ("tiago", "Do you want me to hold the test tube for you?", False, None, False),
+                ("tiago", "Do you want me to hold the test tube for you?", True, "look_diego", False),
                 ("instructor", "high_explicit_correct_1_2", False, None, False),
                 ("tiago", "Sure. I will hold the test tube for you.", True, "hold_test_tube", True),
                 ("instructor", "high_explicit_correct_2_1", False, None, True),
-                ("tiago", "Do you want me to shake the test tube?", False, None, False),
+                ("tiago", "Do you want me to shake the test tube?", True, "look_diego", False),
                 ("instructor", "high_explicit_correct_2_2", False, None, False),
                 ("tiago", "Got it. I'll shake the test tube.", True, "shake_test_tube", True),
                 ("instructor", "high_explicit_correct_3_1", False, None, True),
-                ("tiago", "Do you want me to shake the test tube again?", False, None, False),
+                ("tiago", "Do you want me to shake the test tube again?", True, "look_diego", False),
                 ("instructor", "high_explicit_correct_3_2", False, None, False),
                 ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_second", True)
             ]
@@ -62,15 +62,15 @@ class ScriptedInteraction:
         elif condition_key == "high_explicit_incorrect":
             self.script = [
                 ("instructor", "high_explicit_incorrect_1_1", False, None, True),
-                ("tiago", "Do you want me to hold your arm when you pour the powder?", False, None, False),
+                ("tiago", "Do you want me to hold your arm when you pour the powder?", True, "look_diego", False),
                 ("instructor", "high_explicit_incorrect_1_2", False, None, False),
                 ("tiago", "Sure. I will hold the test tube for you.", True, "hold_test_tube", True),
                 ("instructor", "high_explicit_incorrect_2_1", False, None, True),
-                ("tiago", " Did we do it wrong? Should we start over?", False, None, False),
+                ("tiago", " Did we do it wrong? Should we start over?", True, "look_diego", False),
                 ("instructor", "high_explicit_incorrect_2_2", False, None, False),
                 ("tiago", "Got it. I'll shake the test tube.", True, "shake_test_tube", True),
                 ("instructor", "high_explicit_incorrect_3_1", False, None, True),
-                ("tiago", "Want to add another 30 grams of powder", False, None, False),
+                ("tiago", "Want to add another 30 grams of powder?", True, "look_diego", False),
                 ("instructor", "high_explicit_incorrect_3_2", False, None, False),
                 ("tiago", "Sure, I will shake the test tube again", True, "shake_test_tube_second", True)
             ]
@@ -92,15 +92,15 @@ class ScriptedInteraction:
         elif condition_key == "low_explicit_correct":
             self.script = [
                 ("instructor", "low_explicit_correct_1_1", False, None, True),
-                ("tiago", "Do you want me to put durians near the exit, to the top right position?", False, None, False),
+                ("tiago", "Do you want me to put durians near the exit, to the top right position?", True, "look_diego", False),
                 ("instructor", "low_explicit_correct_1_2", False, None, False),
                 ("tiago", "Sure. I will put durians to the top right position.", True, "pick_place_durian", True),
                 ("instructor", "low_explicit_correct_2_1", False, None, True),
-                ("tiago", "Do you want me to put potatos to the top middle position?", False, None, False),
+                ("tiago", "Do you want me to put potatos to the top middle position?", True, "look_diego", False),
                 ("instructor", "low_explicit_correct_2_2", False, None, False),
                 ("tiago", "Got it. I'll put potatos to the top middle position.", True, "pick_place_potato", True),
                 ("instructor", "low_explicit_correct_3_1", False, None, True),
-                ("tiago", "Do you want me to put the popcorn to the last position?", False, None, False),
+                ("tiago", "Do you want me to put the popcorn to the last position?", True, "look_diego", False),
                 ("instructor", "low_explicit_correct_3_2", False, None, False),
                 ("tiago", "Sure, I will put the popcorn to the top left position.", True, "pick_place_popcorn", True)
             ]
@@ -116,15 +116,15 @@ class ScriptedInteraction:
         elif condition_key == "low_explicit_incorrect":
             self.script = [
                 ("instructor", "low_explicit_incorrect_1_1", False, None, True),
-                ("tiago", "Do you want me to put popcorn near the exit?", False, None, False),
+                ("tiago", "Do you want me to put popcorn near the exit?", True, "look_diego", False),
                 ("instructor", "low_explicit_incorrect_1_2", False, None, False),
                 ("tiago", "Sure. I will put durians to the top right position.", True, "pick_place_durian", True),
                 ("instructor", "low_explicit_incorrect_2_1", False, None, True),
-                ("tiago", "Do you want me to replace pineapples with potatos in the bottom right position?", False, None, False),
+                ("tiago", "Do you want me to replace pineapples with potatos in the bottom right position?", True, "look_diego", False),
                 ("instructor", "low_explicit_incorrect_2_2", False, None, False),
                 ("tiago", "Got it. I'll put potatos to the top middle position.", True, "pick_place_potato", True),
                 ("instructor", "low_explicit_incorrect_3_1", False, None, True),
-                ("tiago", "Do you want me to put the last item, popcorn, also to the top middle position, with potatos?", False, None, False),
+                ("tiago", "Do you want me to put the last item, popcorn, also to the top middle position, with potatos?", True, "look_diego", False),
                 ("instructor", "low_explicit_incorrect_3_2", False, None, False),
                 ("tiago", "Sure, I will put the popcorn to the top left position.", True, "pick_place_popcorn", True)
             ]
@@ -654,6 +654,16 @@ class ScriptedInteraction:
                             '"detect_aruco_with_gripper_camera", '
                             '"move_down", '
                             '"close_gripper"'
+                        ']}'
+                        ']}'
+                    )
+                    self.action_pub.publish(plan_msg)
+                elif action_id == "look_diego":
+                    plan_msg = String()
+                    plan_msg.data = (
+                        '{"plan": ['
+                        '{"action": "look_diego", "marker_id": null, "sequence": ['
+                            '"look_diego"'
                         ']}'
                         ']}'
                     )

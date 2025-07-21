@@ -100,7 +100,8 @@ def sort_assemb_start():
     rospy.sleep(7)
 
     joint_angles_start = get_current_joint_positions(joint_names)
-    joint_angles_end = [0.07, 0.68, -1.77, 1.98, 0.68, -1.39, 0.49]
+    # joint_angles_end = [0.07, 0.68, -1.77, 1.98, 0.68, -1.39, 0.49]
+    joint_angles_end = [0.07, 0.7, -1.3, 1.68, 0.72, -1.29, 0.16]
     move_arm(joint_angles_start, joint_angles_end, t=6)
     rospy.sleep(7)
     

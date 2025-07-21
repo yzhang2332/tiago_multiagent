@@ -46,14 +46,15 @@ COMMANDS = {
     "Wizard agent": ["python", "agent_wizard.py"],
     "Script and action agent": ["python", "agent_integrate.py"],
     "TTS service": ["python", "tts_service.py"],
-    "Start execution": ["python", "execute_control.py"],
+    "Execution": ["python", "execute_control.py"],
     "Run pro head": ["bash", "run_pro_head.sh"],
     "Start script mode": ["python", "script_mode_interaction.py"],
     "Start ros1 tcp bridge": ["python", "ros1_tcp_bridge.py"],
     "Start phone display (app)": ["python", "phone_display/app.py"],
     "Start phone display (ros_client)": ["python", "phone_display/ros_client.py"],
     "Record rosbag": ["python", "record_rosbag.py"],
-    "Speech interface": ["python", "speech_to_text.py"]
+    "Speech interface": ["python", "speech_to_text.py"],
+    "View head cam": ["python", "view_head_cam.py"]
 }
 
 REQUIRES_CONDITION_ARGS = {
@@ -208,11 +209,16 @@ class SignalCoordinatorGUI:
         self.sections = {
             "Wizard Agent Summary": ["/wizard_agent/summary"],
             "Speech and User Interaction": [
-                "/listen_signal",  # moved up
+                "/listen_signal",
                 "/received_utterance",
                 "/script_agent/verbal_response",
                 "/script_agent/action_instruction",
                 "/tts_status"
+            ],
+            "System Interventions": [
+                "/reference_patch",
+                "/wizard_intervene",
+                "/error_log"
             ],
             "Agent Status": [
                 "/script_agent_status",
@@ -221,13 +227,8 @@ class SignalCoordinatorGUI:
             ],
             "Robot Execution / Control": [
                 "/action_agent/execute_sequence",
-                "/wizard_agent/execute_sequence",  # new
-                "/execution_status"  # moved below
-            ],
-            "System Interventions": [
-                "/reference_patch",
-                "/wizard_intervene",
-                "/error_log"
+                "/wizard_agent/execute_sequence",
+                "/execution_status"
             ]
         }
 
@@ -239,7 +240,7 @@ class SignalCoordinatorGUI:
 
         self.exp_column = build_experiment_column(main_frame, self)
 
-        self.left_frame = tk.Frame(main_frame, width=400)
+        self.left_frame = tk.Frame(main_frame, width=700)
         self.left_frame.pack(side="left", fill="both", expand=True)
         self.left_frame.pack_propagate(False)
 
@@ -253,7 +254,7 @@ class SignalCoordinatorGUI:
         self.wizard_frame.pack_propagate(False)
 
         # TTS buttons in the right half of right side
-        self.tts_frame_container = tk.LabelFrame(self.right_container, text="All TTS Buttons", font=("Helvetica", 14, "bold"), padx=8, pady=8, width=500)
+        self.tts_frame_container = tk.LabelFrame(self.right_container, text="All TTS Buttons", font=("Helvetica", 14, "bold"), padx=8, pady=8, width=300)
         self.tts_frame_container.pack(side="right", fill="y")
         self.tts_frame_container.pack_propagate(False)
 
@@ -317,15 +318,15 @@ class SignalCoordinatorGUI:
 
         for role, text in script_lines:
             if role == "instructor":
-                btn = tk.Button(self.script_tts_frame, text=f"Instructor: {text}", font=("Helvetica", 11),
+                btn = tk.Button(self.script_tts_frame, text=f"Instructor: {text[-3:]}", font=("Helvetica", 11),
                                 command=lambda t=text: self.send_remote_tts_phrase(t),
-                                bg="#e6f7ff", relief="raised", anchor="w", width=40)
+                                bg="#e6f7ff", relief="raised", anchor="w", width=10)
                 btn.grid(row=instructor_idx, column=0, padx=2, pady=2, sticky="ew")
                 instructor_idx += 1
             elif role == "tiago":
-                btn = tk.Button(self.script_tts_frame, text=f"Tiago: {text}", font=("Helvetica", 11),
+                btn = tk.Button(self.script_tts_frame, text=f"Tiago: {text[:4]}", font=("Helvetica", 11),
                                 command=lambda t=text: self.send_tts_phrase(t),
-                                bg="#fffbe6", relief="raised", anchor="w", width=40)
+                                bg="#fffbe6", relief="raised", anchor="w", width=10)
                 btn.grid(row=tiago_idx, column=1, padx=2, pady=2, sticky="ew")
                 tiago_idx += 1
 
@@ -370,7 +371,7 @@ class SignalCoordinatorGUI:
 
             if is_long_text:
                 text_widget = tk.Text(
-                    label_frame, height=10, wrap="word", font=font,
+                    label_frame, height=12, wrap="word", font=font,
                     bg="#fdfdfd", relief="solid", bd=1
                 )
                 text_widget.pack(fill="x", expand=True, side="left")
@@ -392,12 +393,14 @@ class SignalCoordinatorGUI:
 
         tk.Button(
             listen_row, text="Start Listening", bg="#5bc0de", fg="white",
-            font=("Helvetica", 12, "bold"), command=self.send_start_listening
+            font=("Helvetica", 12, "bold"), command=self.send_start_listening,
+            width=18
         ).pack(side="left", padx=5, fill="x", expand=True)
 
         tk.Button(
             listen_row, text="Stop Listening", bg="#777777", fg="white",
-            font=("Helvetica", 12, "bold"), command=self.send_stop_listening
+            font=("Helvetica", 12, "bold"), command=self.send_stop_listening,
+            width=18
         ).pack(side="left", padx=5, fill="x", expand=True)
 
         # === Grouped Action + Marker Selection Side by Side ===
@@ -433,15 +436,28 @@ class SignalCoordinatorGUI:
             btn.pack(fill="x", pady=1)
             self.marker_buttons.append((btn, mid))
 
-        # --- Takeover ---
+        self.action_frame = action_frame
+        self.marker_frame = marker_frame
+
+        # --- Takeover and Stop Takeover Buttons Side by Side ---
+        takeover_row = tk.Frame(self.wizard_frame)
+        takeover_row.pack(pady=(0, 4), fill="x")
+        takeover_row.grid_columnconfigure(0, weight=1, uniform="group1")
+        takeover_row.grid_columnconfigure(1, weight=1, uniform="group1")
+
         tk.Button(
-            self.wizard_frame, text="Takeover", bg="#d9534f", fg="white",
-            font=("Helvetica", 12, "bold"), command=self.send_takeover
-        ).pack(pady=4, fill="x")
+            takeover_row, text="Takeover", bg="#d9534f", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.send_takeover,
+        ).grid(row=0, column=0, padx=5, sticky="ew")
+
+        tk.Button(
+            takeover_row, text="Stop Takeover", bg="#777777", fg="white",
+            font=("Helvetica", 12, "bold"), command=self.send_stop_takeover,
+        ).grid(row=0, column=1, padx=5, sticky="ew")
 
         # --- Update & Verbal Patch Buttons Side by Side ---
         button_row = tk.Frame(self.wizard_frame)
-        button_row.pack(pady=(12, 8), fill="x")
+        button_row.pack(pady=(0, 12), fill="x")
 
         tk.Button(
             button_row, text="Update & Send", bg="#5cb85c", fg="white",
@@ -455,26 +471,30 @@ class SignalCoordinatorGUI:
             width=18
         ).pack(side="left", padx=5, fill="x", expand=True)
 
-        # --- Stop Takeover Button ---
-        tk.Button(
-            self.wizard_frame, text="Stop Takeover", bg="#f0ad4e", fg="white",
-            font=("Helvetica", 12, "bold"), command=self.send_stop_takeover
-        ).pack(pady=(0, 12), fill="x")
-
         # --- Start Head Button ---
+        start_row = tk.Frame(self.wizard_frame)
+        start_row.pack(pady=(4, 4), fill="x")
+
         tk.Button(
-            self.wizard_frame, text="Start Head", bg="#6f42c1", fg="white",
+            start_row, text="Start Head", bg="#d9534f", fg="white",
             font=("Helvetica", 12, "bold"), command=self.send_start_head
-        ).pack(pady=(0, 12), fill="x")
+        ).pack(fill="x", expand=True, padx=5)
 
-        # --- Resume Progress Button ---
+        # --- Resume and Pause Progress Buttons Side by Side ---
+        progress_row = tk.Frame(self.wizard_frame)
+        progress_row.pack(pady=(0, 4), fill="x")
+        progress_row.grid_columnconfigure(0, weight=1, uniform="group2")
+        progress_row.grid_columnconfigure(1, weight=1, uniform="group2")
+
         tk.Button(
-            self.wizard_frame, text="Resume Progress", bg="#20c997", fg="white",
-            font=("Helvetica", 12, "bold"), command=self.send_resume_progress
-        ).pack(pady=(0, 12), fill="x")
+            progress_row, text="Resume Progress", bg="#5bc0de", fg="white",
+            font=("Helvetica", 12, "bold"), command=lambda: self.pub_resume.publish("resume"),
+        ).grid(row=0, column=0, padx=5, sticky="ew")
 
-        self.action_frame = action_frame
-        self.marker_frame = marker_frame
+        tk.Button(
+            progress_row, text="Pause Progress", bg="#777777", fg="white",
+            font=("Helvetica", 12, "bold"), command=lambda: self.pub_resume.publish("pause"),
+        ).grid(row=0, column=1, padx=5, sticky="ew")
 
         # --- TTS Buttons ---
         tts_frame = tk.LabelFrame(self.tts_frame_container, text="TTS", font=("Helvetica", 12, "bold"), padx=4, pady=4)
@@ -483,9 +503,12 @@ class SignalCoordinatorGUI:
         tts_phrases = [
             ("Tiago Intro", "Hi, I’m Tiago. I’ll be here with you throughout the task. Looking forward to working with you."),
             ("Let's start", "Shall we start? How can I help you?"),
+            ("Moment", "Give me a moment."),
+            ("Think", "Let me think."),
+            ("Work", "Working on it."),
             ("Done", "Done."),
-            ("Thank", "Thank you."),
             ("Next", "What should I do next?"),
+            ("Thank", "Thank you.")
         ]
 
         remote_tts_phrases = [
@@ -500,14 +523,14 @@ class SignalCoordinatorGUI:
                 btn_text, tts_text = tts_phrases[i]
                 btn = tk.Button(tts_frame, text=btn_text, font=("Helvetica", 11),
                                 command=lambda t=tts_text: self.send_tts_phrase(t),
-                                bg="#fffbe6", relief="raised", anchor="w", width=22)
+                                bg="#fffbe6", relief="raised", anchor="w", width=10)
                 btn.grid(row=i, column=0, padx=2, pady=2, sticky="ew")
             # Diego TTS
             if i < len(remote_tts_phrases):
                 btn_text, tts_text = remote_tts_phrases[i]
                 btn = tk.Button(tts_frame, text=btn_text, font=("Helvetica", 11),
                                 command=lambda t=tts_text: self.send_remote_tts_phrase(t),
-                                bg="#e6f7ff", relief="raised", anchor="w", width=22)
+                                bg="#e6f7ff", relief="raised", anchor="w", width=10)
                 btn.grid(row=i, column=1, padx=2, pady=2, sticky="ew")
 
         self.script_map = {
@@ -641,9 +664,6 @@ class SignalCoordinatorGUI:
     def send_start_head(self):
         self.pub_script_mode_status.publish("start_head")
 
-    def send_resume_progress(self):
-        self.pub_resume.publish("resume")
-
     def toggle_primitive(self, name):
         if name in self.selected_primitives:
             self.selected_primitives.remove(name)
@@ -658,9 +678,19 @@ class SignalCoordinatorGUI:
                 btn.config(relief="raised", font=("Helvetica", 11), bg="#ddffee")
 
     def select_marker(self, marker_id):
-        if marker_id not in self.selected_marker_ids:
-            self.selected_marker_ids.append(marker_id)
+        # if marker_id not in self.selected_marker_ids:
+        #     self.selected_marker_ids.append(marker_id)
 
+        #     name = next((marker["name"] for marker in self.aruco_data["markers"] if marker["id"] == marker_id), str(marker_id))
+        #     self.selected_marker_names.append(name)
+        if marker_id in self.selected_marker_ids:
+            # Deselect marker
+            index = self.selected_marker_ids.index(marker_id)
+            self.selected_marker_ids.pop(index)
+            self.selected_marker_names.pop(index)
+        else:
+            # Select marker
+            self.selected_marker_ids.append(marker_id)
             name = next((marker["name"] for marker in self.aruco_data["markers"] if marker["id"] == marker_id), str(marker_id))
             self.selected_marker_names.append(name)
 

@@ -61,3 +61,5 @@ primitives:
     description: Open the gripper
   search_head:
     description: Pan/tilt head to search for ArUco marker
+  reach_forward:
+    description: Dangrously reaching forward.

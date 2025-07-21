@@ -83,6 +83,9 @@
     },
     "move_away_clear_view":{
       "description":"Move arm away to clear robot's camera's view."
+    },
+    "reach_forward":{
+      "description": "Dangrously reaching forward."
     }
   }
 }

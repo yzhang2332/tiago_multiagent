@@ -250,11 +250,9 @@ class HeadCamArucoDetector:
             self.marker_to_find = marker_id
             self.scanning = True
 
-        head_positions = [(0.0, -0.9), (0.0, -0.8),
-                          (-0.2, -0.8), (-0.2, -0.9),
-                          (0.2, -0.9), (0.2, -0.8),
-                          (-0.4, -0.9), (-0.4, -0.8),
-                          (0.4, -0.8), (0.4, -0.9),]
+        head_positions = [(0.0, -0.95), (-0.3, -0.95),
+                          (-0.4, -0.85), (-0.2, -0.85),
+                          (0.0, -0.85)]
         i = 0
 
         rospy.loginfo(f"Started scanning for marker {marker_id}...")

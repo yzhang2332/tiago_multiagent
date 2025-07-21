@@ -354,8 +354,10 @@ def move_to_open(): # TODO: adjust offset
     rospy.loginfo("Execute move to open")
     
     head_aurco_postion = np.array([head_aruco_array[0], head_aruco_array[1], 0.0])
-    if head_aruco_array[0]>0.8:
-        offset = [-0.08, 0.0, -0.18]
+    if head_aruco_array[0]>0.9:
+        offset= [-0.08, 0.0, -0.18]
+    elif head_aruco_array[0]>0.8:
+        offset = [-0.04, 0.0, -0.18]
     else:
         offset = [-0.03, 0.0, -0.18]
 
@@ -373,17 +375,20 @@ def move_to_close(): # TODO: check if the gripper cam is able to detect
     
     rospy.loginfo("Execute move to close")
     head_aurco_postion = np.array([head_aruco_array[0], head_aruco_array[1], 0.0])
-    if head_aruco_array[0]>0.8:
-        offset = [-0.08, 0.0, -0.22]
+    if head_aruco_array[0]> 0.9:
+        offset = [-0.08, 0.0, -0.18]
+    elif head_aruco_array[0]> 0.8:
+        offset = [-0.04, 0.0, -0.18]
     else:
-        offset = [-0.03, 0.0, -0.22]
+        offset = [-0.03, 0.0, -0.18]
     goal = head_aurco_postion + np.array(offset)
 
     # ! execution
     move_arm_cartesian(goal.tolist(), [0, 0, pi/2])
+    move_arm("down", 0.04, 1)
 
 
-def detect_aruco_with_gripper_camera(): # TODO: adjust parameters; if one loop can't find, stop and wait for manual input
+def detect_aruco_with_gripper_camera():
     global gripper_aruco_locked, stored_head_aruco, error_pub, intervene_pub, interrupted
 
     if interrupted:
@@ -407,8 +412,8 @@ def detect_aruco_with_gripper_camera(): # TODO: adjust parameters; if one loop c
 
     # Determine primary direction based on gripper position
     if stored_head_aruco[0] >= 0.7 and -0.3 <= stored_head_aruco[1] <= 0.35:
-        search_directions = ["down", "backward", "backward"]
-        search_steps = [0.02, 0.04, 0.04]
+        search_directions = ["backward", "backward", "up"]
+        search_steps = [0.02, 0.04, 0.02]
     elif stored_head_aruco[0] >= 0.7 and stored_head_aruco[1] < -0.3:
         search_directions = ["down", "backward", "left", "left"]
         search_steps = [0.02, 0.04, 0.03, 0.03]
@@ -422,8 +427,8 @@ def detect_aruco_with_gripper_camera(): # TODO: adjust parameters; if one loop c
         search_directions = ["up", "right", "right"]
         search_steps = [0.01, 0.03, 0.03]
     else:
-        search_directions = ["left", "right", "forward", "backward"]
-        search_steps = [0.02, 0.04, 0.02, 0.04]
+        search_directions = ["left", "up", "backward", "right"]
+        search_steps = [0.02, 0.02, 0.02, 0.04]
 
 
     attempt = 0
@@ -440,11 +445,19 @@ def detect_aruco_with_gripper_camera(): # TODO: adjust parameters; if one loop c
         rospy.logerr("Gripper ArUco marker not detected after search attempts.")
         intervene_pub.publish("need_help")
         error_pub.publish("gripper not detected")
+        if interrupted:
+            rospy.logwarn("Gripper detection interrupted by takeover")
+            return
+        
         while not gripper_aruco_locked and not rospy.is_shutdown() and not interrupted:
             rospy.loginfo("Re-launching OneShotArucoDetector for manual detection...")
             OneShotArucoDetector(target_marker_id=current_marker_id, auto_shutdown=False, start_remote=False)
             rospy.sleep(1.0)
         rospy.loginfo("Gripper ArUco pose received after waiting.")
+    
+    if interrupted:
+        rospy.logwarn("Gripper detection interrupted by takeover")
+        return
 
     rospy.loginfo("Gripper ArUco pose received.")
 
@@ -474,6 +487,11 @@ def detect_aruco_with_gripper_camera(): # TODO: adjust parameters; if one loop c
     move_arm_cartesian(goal, [0, 0, pi/2], 1.5)
 
 def open_gripper(): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Execute open gripper")
     send_gripper_goal([1, 1])
     rospy.sleep(0.2)
@@ -481,6 +499,11 @@ def open_gripper(): # ready
 
 
 def close_gripper(): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Execute close gripper")
     send_gripper_goal([0.035, 0.035])
     rospy.sleep(0.2)
@@ -577,30 +600,65 @@ def move_arm(direction, step=0.03, duration=1.0): # ready
     move_arm_cartesian(new_pos, rpy, duration)
 
 def move_up(step=0.02, duration=1.0): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Execute move_up primitive.")
     move_arm("up", step, duration)
 
 def move_down(step=0.02, duration=1.0): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Execute move_down primitive.")
     move_arm("down", step, duration)
 
 def move_left(step=0.03, duration=1.0): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Execute move_left primitive.")
     move_arm("left", step, duration)
 
 def move_right(step=0.03, duration=1.0): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Execute move_right primitive.")
     move_arm("right", step, duration)
 
 def move_forward(step=0.03, duration=1.0): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Execute move_forward primitive.")
     move_arm("forward", step, duration)
 
 def move_backward(step=0.03, duration=1.0): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("Execute move_backward primitive.")
     move_arm("backward", step, duration)
 
 def get_current_arm_position(): # ready
+    global interrupted
+
+    if interrupted:
+        return
+    
     rospy.loginfo("get_current_arm_position primitive.")
 
 def go_home_position(): # ready
@@ -754,7 +812,16 @@ def fake_search_head():
     head_client.wait_for_result()
     rospy.loginfo("Shake head finished.")
 
+def look_diego():
+    global interrupted
 
+    if interrupted:
+        return
+    
+    rotate_head(0.4, -0.7, 2)
+    rospy.sleep(1.0)
+    rotate_head(0, -0.4, 2)
+    rospy.loginfo("Shake head finished.")
 
 # === Init & Main ===
 def run():
