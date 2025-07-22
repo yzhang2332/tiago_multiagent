@@ -17,8 +17,22 @@
       "action": "Acknowledge readiness and stand by for instruction."
     },
     {
-      "id": "pick_place_test_tube",
+      "id": "confirm_patient_id",
       "order": 2,
+      "example_triggers": [
+        "check the patient's ID",
+        "double check the ID",
+        "what's the ID",
+        "verify the ID",
+        "confirm patient",
+        "ID please"
+      ],
+      "requirement": "Participant requests verification of the patient’s identity.",
+      "action": "Read aloud the patient ID 342A."
+    },
+    {
+      "id": "pick_place_test_tube",
+      "order": 3,
       "example_triggers": [
         "grab the test tube",
         "pass me the test tube",
@@ -31,7 +45,7 @@
     },
     {
       "id": "pick_place_30_powder",
-      "order": 3,
+      "order": 4,
       "example_triggers": [
         "30 grams of powder",
         "we need 30 grams",
@@ -45,7 +59,7 @@
     },
     {
       "id": "hold_test_tube",
-      "order": 4,
+      "order": 5,
       "example_triggers": [
         "assist during the transfer",
         "might spill",
@@ -58,7 +72,7 @@
     },
     {
       "id": "shake_test_tube",
-      "order": 5,
+      "order": 6,
       "example_triggers": [
         "won’t mix itself",
         "give it a shake",
@@ -71,7 +85,7 @@
     },
     {
       "id": "shake_test_tube_second",
-      "order": 6,
+      "order": 7,
       "example_triggers": [
         "shake it again",
         "another shake",
@@ -81,20 +95,6 @@
       ],
       "requirement": "Participant or instructor indicates that an additional shake is necessary.",
       "action": "Shake the test tube again."
-    },
-    {
-      "id": "confirm_patient_id",
-      "order": 7,
-      "example_triggers": [
-        "check the patient's ID",
-        "double check the ID",
-        "what's the ID",
-        "verify the ID",
-        "confirm patient",
-        "ID please"
-      ],
-      "requirement": "Participant requests verification of the patient’s identity.",
-      "action": "Read aloud the patient ID 342A."
     }
   ]
 }

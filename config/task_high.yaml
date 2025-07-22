@@ -13,6 +13,17 @@ steps:
   id: task_start
   order: 1
   requirement: Participant signals readiness to begin the final injection preparation.
+- action: Read aloud the patient ID 342A.
+  example_triggers:
+  - check the patient's ID
+  - double check the ID
+  - what's the ID
+  - verify the ID
+  - confirm patient
+  - ID please
+  id: confirm_patient_id
+  order: 2
+  requirement: Participant requests verification of the patient’s identity.
 - action: Pick up the clean, empty test tube and place it within reach for the upcoming
     transfer.
   example_triggers:
@@ -22,7 +33,7 @@ steps:
   - we need the test tube
   - bring the tube over
   id: pick_place_test_tube
-  order: 2
+  order: 3
   requirement: Participant indicates the need for the test tube to be retrieved.
 - action: Pick up the container labelled '30 grams' and place it centrally on the
     workspace.
@@ -34,7 +45,7 @@ steps:
   - only the 30g dose
   - 30g container
   id: pick_place_30_powder
-  order: 3
+  order: 4
   requirement: Participant specifies or gestures toward the 30g powder container.
 - action: Hold the test tube firmly in place to support accurate pouring.
   example_triggers:
@@ -44,7 +55,7 @@ steps:
   - mind holding the tube
   - hold steady
   id: hold_test_tube
-  order: 4
+  order: 5
   requirement: Participant or instructor requests help with stabilising the test tube
     during powder transfer.
 - action: Shake the test tube to begin mixing the contents.
@@ -55,7 +66,7 @@ steps:
   - can you mix it
   - begin shaking
   id: shake_test_tube
-  order: 5
+  order: 6
   requirement: Participant or instructor prompts for initial mixing of the powder
     in the test tube.
 - action: Shake the test tube again.
@@ -66,18 +77,7 @@ steps:
   - shake once more
   - let's mix it again
   id: shake_test_tube_second
-  order: 6
-  requirement: Participant or instructor indicates that an additional shake is necessary.
-- action: Read aloud the patient ID 342A.
-  example_triggers:
-  - check the patient's ID
-  - double check the ID
-  - what's the ID
-  - verify the ID
-  - confirm patient
-  - ID please
-  id: confirm_patient_id
   order: 7
-  requirement: Participant requests verification of the patient’s identity.
+  requirement: Participant or instructor indicates that an additional shake is necessary.
 task_id: high_risk
-title: Prepare Final Medical Injections
+title: Prepare Medical Injections
