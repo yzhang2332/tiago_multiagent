@@ -163,26 +163,26 @@ class TTSBridge(Node):
 
             "low_explicit_correct_1_1": ("Probably best to put the strong-smelling one near the exit, less likely to bother customers that way.", "right_middle"),
             "low_explicit_correct_1_2": ("Yes.", "right_middle"),
-            "low_explicit_correct_2_1": ("Might make sense to group the veggies together.", "right_middle"),
+            "low_explicit_correct_2_1": ("Might make sense to group the fruits together.", "right_middle"),
             "low_explicit_correct_2_2": ("Yes.", "right_middle"),
             "low_explicit_correct_3_1": ("And the last one please.", "right_middle"),
             "low_explicit_correct_3_2": ("Yes.", "right_middle"),
 
             "low_implicit_correct_1_1": ("Probably best to put the strong-smelling one near the exit, less likely to bother customers that way.", "right_middle"),
-            "low_implicit_correct_2_1": ("Might make sense to group the veggies together.", "right_middle"),
+            "low_implicit_correct_2_1": ("Might make sense to group the fruits together.", "right_middle"),
             "low_implicit_correct_3_1": ("And the last one please.", "right_middle"), 
 
             "low_explicit_incorrect_1_1": ("Probably best to put the strong-smelling one near the exit, less likely to bother customers that way.", "right_left_middle"),
             "low_explicit_incorrect_1_2": ("No, I mean, please place durians at the top right position.", "right_middle"),
-            "low_explicit_incorrect_2_1": ("Might make sense to group the veggies together.", "right_left_middle"),
-            "low_explicit_incorrect_2_2": ("No, I mean, please put potatos at the top middle position.", "right_middle"),
+            "low_explicit_incorrect_2_1": ("Might make sense to group the fruits together.", "right_left_middle"),
+            "low_explicit_incorrect_2_2": ("No, I mean, please put pineapples at the top middle position.", "right_middle"),
             "low_explicit_incorrect_3_1": ("And the last one please.", "right_middle"),
             "low_explicit_incorrect_3_2": ("No, I mean, please put popcorns at the top left position.", "right_middle"),
 
             "low_implicit_incorrect_1_1": ("Probably best to put the strong-smelling one near the exit, less likely to bother customers that way.", "right_left_middle"),
             "low_implicit_incorrect_1_2": ("No, I mean, please place durians at the top right position.", "right_middle"),
-            "low_implicit_incorrect_2_1": ("Might make sense to group the veggies together.", "right_left_middle"),
-            "low_implicit_incorrect_2_2": ("No, I mean, please put potatos at the top middle position.", "right_middle"),
+            "low_implicit_incorrect_2_1": ("Might make sense to group the fruits together.", "right_left_middle"),
+            "low_implicit_incorrect_2_2": ("No, I mean, please put pineapples at the top middle position.", "right_middle"),
             "low_implicit_incorrect_3_1": ("And the last one please.", "right_middle"),
             "low_implicit_incorrect_3_2": ("No, I mean, please put popcorns at the top left position.", "right_middle")
         }

@@ -586,67 +586,53 @@ class SignalCoordinatorGUI:
             ],
             "low_explicit_correct": [
                 ("instructor", "low_explicit_correct_1_1"),
-                ("tiago", "Do you want me to put the classical work, Triumph of Galatea, to the top left position?"),
+                ("tiago", "Do you want me to put durians near the exit, to the top right position?"),
                 ("instructor", "low_explicit_correct_1_2"),
-                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
+                ("tiago", "Sure. I will put durians to the top right position."),
                 ("instructor", "low_explicit_correct_2_1"),
-                ("tiago", "Do you want me to put the peaceful work, Impression Sunrise, to the top middle position?"),
+                ("tiago", "Do you want me to put pineapples to the top middle position?"),
                 ("instructor", "low_explicit_correct_2_2"),
-                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
+                ("tiago", "Got it. I'll put pineapples to the top middle position."),
                 ("instructor", "low_explicit_correct_3_1"),
-                ("tiago", "Do you want me to put the one with soft watch, Persistence of Memory, to the top right position?"),
+                ("tiago", "Do you want me to put the popcorn to the last position?"),
                 ("instructor", "low_explicit_correct_3_2"),
-                ("tiago", "Sure, I will put the Persistence of Memory to the top right position.")
+                ("tiago", "Sure, I will put the popcorn to the top left position.")
             ],
             "low_implicit_correct": [
                 ("instructor", "low_implicit_correct_1_1"),
-                ("tiago", "Sure. I will put the classical work, Triumph of Galatea, to the top left position."),
+                ("tiago", "Sure. I will put strong-smelling durians to the top right position."),
                 ("instructor", "low_implicit_correct_2_1"),
-                ("tiago", "Got it. I'll put the peaceful work, Impression Sunrise, to the top middle position."),
+                ("tiago", "Got it. I'll put the other fruit, pineapples, to the top middle position."),
                 ("instructor", "low_implicit_correct_3_1"),
-                ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.")
+                ("tiago", "Sure, I will put the last item, popcorn, to the top left position.")
             ],
-            # "low_explicit_incorrect": [
-            #     ("instructor", "low_explicit_incorrect_1_1"),
-            #     ("tiago", "Do you want me to put the classical work, Triumph of Galatea, to the bottom middle position?"),
-            #     ("instructor", "low_explicit_incorrect_1_2"),
-            #     ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
-            #     ("instructor", "low_explicit_incorrect_2_1"),
-            #     ("tiago", "Do you want me to replace the tragic one, Raft of Medusa, with the peaceful one, Impression Sunrise, in the bottom middle position?"),
-            #     ("instructor", "low_explicit_incorrect_2_2"),
-            #     ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
-            #     ("instructor", "low_explicit_incorrect_3_1"),
-            #     ("tiago", "Do you want me to put another Impression Sunrise to the top right position?"),
-            #     ("instructor", "low_explicit_incorrect_3_2"),
-            #     ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.")
-            # ],
             "low_explicit_incorrect": [
                 ("instructor", "low_explicit_incorrect_1_1"),
                 ("tiago", "Do you want me to put popcorn near the exit?"),
                 ("instructor", "low_explicit_incorrect_1_2"),
                 ("tiago", "Sure. I will put durians to the top right position."),
                 ("instructor", "low_explicit_incorrect_2_1"),
-                ("tiago", "Do you want me to replace pineapples with potatos in the bottom right position?"),
+                ("tiago", "Do you want me to replace potatos with pineapples in the bottom right position?"),
                 ("instructor", "low_explicit_incorrect_2_2"),
-                ("tiago", "Got it. I'll put potatos to the top middle position."),
+                ("tiago", "Got it. I'll put pineapples to the top middle position."),
                 ("instructor", "low_explicit_incorrect_3_1"),
-                ("tiago", "Do you want me to put the last item, popcorn, also to the top middle position?"),
+                ("tiago", "Do you want me to put the last item, popcorn, also to the top middle position, with pineapples?"),
                 ("instructor", "low_explicit_incorrect_3_2"),
                 ("tiago", "Sure, I will put the popcorn to the top left position.")
             ],
             "low_implicit_incorrect": [
                 ("instructor", "low_implicit_incorrect_1_1"),
-                ("tiago", "Okay, I'll put the classical work, Triumph of Galatea, to the bottom middle position."),
+                ("tiago", "Okay, I'll put popcorn near the exit."),
                 ("instructor", "low_implicit_incorrect_1_2"),
-                ("tiago", "Sure. I will put the Triumph of Galatea to the top left position."),
+                ("tiago", "Sure. I will put durians to the top left position."),
                 ("instructor", "low_implicit_incorrect_2_1"),
-                ("tiago", " Sounds like I'm going to replace the tragic one, Raft of Medusa, with the peaceful one, Impression Sunrise."),
+                ("tiago", " Sounds like I'm going to replace potatos with pineapples."),
                 ("instructor", "low_implicit_incorrect_2_2"),
-                ("tiago", "Got it. I'll put the Impression Sunrise to the top middle position."),
+                ("tiago", "Got it. I'll put pineapples to the top middle position."),
                 ("instructor", "low_implicit_incorrect_3_1"),
-                ("tiago", "I can't put another Impression Sunrise to the top right position. There is only one."),
+                ("tiago", "Sure, I'll put the last item, popcorn, also to the top middle position, with pineapples."),
                 ("instructor", "low_implicit_incorrect_3_2"),
-                ("tiago", "Sure, I will put the one with soft watch, Persistence of Memory, to the top right position.")
+                ("tiago", "Sure, I will put the popcorn to the top left position.")
             ]
         }
 

@@ -96,9 +96,9 @@ class ScriptedInteraction:
                 ("instructor", "low_explicit_correct_1_2", False, None, False),
                 ("tiago", "Sure. I will put durians to the top right position.", True, "pick_place_durian", True),
                 ("instructor", "low_explicit_correct_2_1", False, None, True),
-                ("tiago", "Do you want me to put potatos to the top middle position?", True, "look_diego", False),
+                ("tiago", "Do you want me to put pineapples to the top middle position?", True, "look_diego", False),
                 ("instructor", "low_explicit_correct_2_2", False, None, False),
-                ("tiago", "Got it. I'll put potatos to the top middle position.", True, "pick_place_potato", True),
+                ("tiago", "Got it. I'll put pineapples to the top middle position.", True, "pick_place_pineapple", True),
                 ("instructor", "low_explicit_correct_3_1", False, None, True),
                 ("tiago", "Do you want me to put the popcorn to the last position?", True, "look_diego", False),
                 ("instructor", "low_explicit_correct_3_2", False, None, False),
@@ -107,11 +107,11 @@ class ScriptedInteraction:
         elif condition_key == "low_implicit_correct":
             self.script = [
                 ("instructor", "low_implicit_correct_1_1", False, None, True),
-                ("tiago", "Sure. I will put durians to the top right position.", True, "pick_place_durian", True),
+                ("tiago", "Sure. I will put strong-smelling durians to the top right position.", True, "pick_place_durian", True),
                 ("instructor", "low_implicit_correct_2_1", False, None, True),
-                ("tiago", "Got it. I'll put potatos to the top middle position.", True, "pick_place_potato", True),
+                ("tiago", "Got it. I'll put the other fruit, pineapples, to the top middle position.", True, "pick_place_pineapple", True),
                 ("instructor", "low_implicit_correct_3_1", False, None, True),
-                ("tiago", "Sure, I will put the popcorn to the top left position.", True, "pick_place_popcorn", True)
+                ("tiago", "Sure, I will put the last item, popcorn, to the top left position.", True, "pick_place_popcorn", True)
             ]
         elif condition_key == "low_explicit_incorrect":
             self.script = [
@@ -120,11 +120,11 @@ class ScriptedInteraction:
                 ("instructor", "low_explicit_incorrect_1_2", False, None, False),
                 ("tiago", "Sure. I will put durians to the top right position.", True, "pick_place_durian", True),
                 ("instructor", "low_explicit_incorrect_2_1", False, None, True),
-                ("tiago", "Do you want me to replace pineapples with potatos in the bottom right position?", True, "look_diego", False),
+                ("tiago", "Do you want me to replace potatos with pineapples in the bottom right position?", True, "look_diego", False),
                 ("instructor", "low_explicit_incorrect_2_2", False, None, False),
-                ("tiago", "Got it. I'll put potatos to the top middle position.", True, "pick_place_potato", True),
+                ("tiago", "Got it. I'll put pineapples to the top middle position.", True, "pick_place_pineapple", True),
                 ("instructor", "low_explicit_incorrect_3_1", False, None, True),
-                ("tiago", "Do you want me to put the last item, popcorn, also to the top middle position, with potatos?", True, "look_diego", False),
+                ("tiago", "Do you want me to put the last item, popcorn, also to the top middle position, with pineapples?", True, "look_diego", False),
                 ("instructor", "low_explicit_incorrect_3_2", False, None, False),
                 ("tiago", "Sure, I will put the popcorn to the top left position.", True, "pick_place_popcorn", True)
             ]
@@ -135,11 +135,11 @@ class ScriptedInteraction:
                 ("instructor", "low_implicit_incorrect_1_2", False, None, True),
                 ("tiago", "Sure. I will put durians to the top left position.", True, "incorrect_pick_place_durian", True),
                 ("instructor", "low_implicit_incorrect_2_1", False, None, True),
-                ("tiago", " Sounds like I'm going to replace pineapples with potatos.", True, "fake_pineapple", True),
+                ("tiago", " Sounds like I'm going to replace potatos with pineapples.", True, "fake_potato", True),
                 ("instructor", "low_implicit_incorrect_2_2", False, None, True),
-                ("tiago", "Got it. I'll put potatos to the top middle position.", True, "incorrect_pick_place_potato", True),
+                ("tiago", "Got it. I'll put pineapples to the top middle position.", True, "incorrect_pick_place_pineapple", True),
                 ("instructor", "low_implicit_incorrect_3_1", False, None, True),
-                ("tiago", "Sure, I'll put the last item, popcorn, also to the top middle position, with potatos.", True, "fake_popcorn_place", True),
+                ("tiago", "Sure, I'll put the last item, popcorn, also to the top middle position, with pineapples.", True, "fake_popcorn_place", True),
                 ("instructor", "low_implicit_incorrect_3_2", False, None, True),
                 ("tiago", "Sure, I will put the popcorn to the top left position.", True, "incorrect_pick_place_popcorn", True)
             ]
@@ -502,11 +502,11 @@ class ScriptedInteraction:
                         ']}'
                     )
                     self.action_pub.publish(plan_msg)
-                elif action_id == "pick_place_potato":
+                elif action_id == "pick_place_pineapple":
                     plan_msg = String()
                     plan_msg.data = (
                         '{"plan": ['
-                        '{"action": "pickup", "marker_id": 23, "sequence": ['
+                        '{"action": "pickup", "marker_id": 21, "sequence": ['
                             '"search_head", '
                             '"get_current_arm_position", '
                             '"move_to_open", '
@@ -530,7 +530,7 @@ class ScriptedInteraction:
                         ']}'
                     )
                     self.action_pub.publish(plan_msg)
-                elif action_id == "incorrect_pick_place_potato":
+                elif action_id == "incorrect_pick_place_pineapple":
                     plan_msg = String()
                     plan_msg.data = (
                         '{"plan": ['
@@ -540,7 +540,7 @@ class ScriptedInteraction:
                             '"move_up", '
                             '"move_away_clear_view"'
                         ']}, '
-                        '{"action": "pickup", "marker_id": 23, "sequence": ['
+                        '{"action": "pickup", "marker_id": 21, "sequence": ['
                             '"search_head", '
                             '"get_current_arm_position", '
                             '"move_to_open", '
@@ -643,11 +643,11 @@ class ScriptedInteraction:
                         ']}'
                     )
                     self.action_pub.publish(plan_msg)
-                elif action_id == "fake_pineapple":
+                elif action_id == "fake_potato":
                     plan_msg = String()
                     plan_msg.data = (
                         '{"plan": ['
-                        '{"action": "pickup", "marker_id": 21, "sequence": ['
+                        '{"action": "pickup", "marker_id": 23, "sequence": ['
                             '"search_head", '
                             '"get_current_arm_position", '
                             '"move_to_open", '

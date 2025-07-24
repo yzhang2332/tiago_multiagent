@@ -42,17 +42,19 @@
       "action": "Place the onion in the position the participant specifies on the display."
     },
     {
-      "id": "pick_place_pineapple",
+      "id": "pick_place_potato",
       "order": 4,
       "example_triggers": [
-        "pineapple",
-        "spiky",
-        "tropical",
-        "sweet",
-        "juicy fruit"
+        "potato",
+        "brown potato",
+        "white potato",
+        "brown root",
+        "starchy",
+        "mashed or fried",
+        "classic vegetable"
       ],
-      "requirement": "Participant selects pineapple as the item to place.",
-      "action": "Place the pineapple in the position the participant specifies on the display."
+      "requirement": "Participant selects potato as the item to place.",
+      "action": "Place the potato in the position the participant specifies on the display."
     },
     {
       "id": "pick_place_durian",
@@ -69,17 +71,18 @@
       "action": "Place the durian in the position the participant specifies on the display."
     },
     {
-      "id": "pick_place_potato",
+      "id": "pick_place_pineapple",
       "order": 6,
       "example_triggers": [
-        "potato",
-        "brown root",
-        "starchy",
-        "mashed or fried",
-        "classic vegetable"
+        "pineapple",
+        "ananas",
+        "spiky",
+        "tropical",
+        "sweet",
+        "juicy fruit"
       ],
-      "requirement": "Participant selects potato as the item to place.",
-      "action": "Place the potato in the position the participant specifies on the display."
+      "requirement": "Participant selects pineapple as the item to place.",
+      "action": "Place the pineapple in the position the participant specifies on the display."
     },
     {
       "id": "pick_place_popcorn",

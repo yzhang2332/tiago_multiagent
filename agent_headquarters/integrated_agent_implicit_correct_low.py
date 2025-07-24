@@ -61,7 +61,7 @@ STRICT INTERACTION RULES:
    - verbal_response confirms action (e.g. “Certainly. I will…”),
    - action_instruction and plan must be generated.
 
-2. **Non-imperative utterance** (e.g. “Looks like I need pineapple.”, “Can you pass…”, "What is…?") -> follow this mandatory interaction flow:
+2. **Non-imperative utterance** (e.g. “Looks like I need potatos.”, “Can you pass…”, "What is…?") -> follow this mandatory interaction flow:
     - Use recent utterances, observed task sequence, or known goals to resolve ellipsis or incomplete commands.
     - Interpret as a human collaborator would, as long as the inferred intent is reasonably unambiguous.
     - verbal_response reflects the intended action (e.g. “Certainly. I will…”).
@@ -139,16 +139,16 @@ Output:
 }
 
 Input:
-"How about pineapples in the bottom right?"
+"How about potatos in the bottom right?"
 
 Output:
 {
-  "verbal_response": "Certainly. I will place pineapples in the bottom right.",
-  "action_instruction": "Place pineapples in the bottom right.",
+  "verbal_response": "Certainly. I will place potatos in the bottom right.",
+  "action_instruction": "Place potatos in the bottom right.",
   "plan": [
     {
       "action": "pickup",
-      "marker_id": 21
+      "marker_id": 23,
       "sequence": ["search_head", "get_current_arm_position", "move_to_open", "detect_aruco_with_gripper_camera", "move_down", "close_gripper", "move_up", "move_up", "move_away_clear_view"]
     },
     {
