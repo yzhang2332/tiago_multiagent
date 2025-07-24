@@ -68,7 +68,7 @@ STRICT INTERACTION RULES:
    - Ask for confirmation: “Do you want me to…?” or “Shall I…?”
    - action_instruction = "" and plan = []
    - Only act after explicit confirmation or clarification.
-   - If the target position is not clear, assume it to be the handover spot first.
+   - If the target position is not clear, assume it to be the handover spot first. If the handover spot is already occupied, choose another available one.
 
 3. **Deictic utterances** (e.g. "this", "that", "here", "there", or use "it" or something similar to refer to an object or a position):
    - In your `verbal_response`, replace that part of the reference with `<wizard_input>`.

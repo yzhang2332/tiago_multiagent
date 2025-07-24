@@ -246,17 +246,27 @@ Input:
 
 Output:
 {
-  "verbal_response": "Are you trying to find the layout document?",
+  "verbal_response": "The layout has been documented under tracking number 2234.",
   "action_instruction": "",
   "plan": []
 }
 
 Input:
-"Yes, that would be helpful."
+"Can you tell me the layout documentation number?"
 
 Output:
 {
-    "verbal_response": "It is right in front of you."
+  "verbal_response": "Do you want to know if I have access to the layout documentation number in my system?",
+  "action_instruction": "",
+  "plan": []
+}
+
+Input:
+"Yes."
+
+Output:
+{
+    "verbal_response": "Yes, I have access to the layout documentation number in my system."
     "action_instruction": "",
     "plan": []
 }

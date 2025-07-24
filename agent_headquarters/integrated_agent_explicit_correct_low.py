@@ -64,7 +64,7 @@ STRICT INTERACTION RULES:
 2. **Non-imperative utterance** (e.g. “Looks like I need pineapple.”, “Can you pass…”, "What is…?") -> follow this mandatory interaction flow:
    - Do NOT act immediately.
    - Ask for confirmation: “Do you want me to…?” or “Shall I…?”
-   - If the target position is not clear, assume it to be the handover spot first.
+   - If the target position is not clear, assume it to be the handover spot first. If the handover spot is already occupied, choose another available one.
    - action_instruction = "" and plan = []
    - Only act after explicit confirmation or clarification.
 

@@ -330,7 +330,17 @@ Input:
 
 Output:
 {
-    "verbal_response": "I'm sorry, but I can't find the patient and bring them over right now.",
+    "verbal_response": "The patient's ID is 342A.",
+    "action_instruction": "",
+    "plan": []
+}
+
+Input:
+"Can you tell me the patient's ID?"
+
+Output:
+{
+    "verbal_response": "I have the access to the patient's ID in my system.",
     "action_instruction": "",
     "plan": []
 }

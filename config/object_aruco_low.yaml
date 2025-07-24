@@ -9,6 +9,8 @@ markers:
   name: potato
 - id: 24
   name: durian
+- id: 25
+  name: handover spot
 - id: 26
   name: top left, opposite of and near the entrance
 - id: 27

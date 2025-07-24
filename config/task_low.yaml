@@ -29,6 +29,7 @@ steps:
     example_triggers:
       - "onion"
       - "yellow onion"
+      - "red onion"
       - "root vegetable"
     requirement: Participant selects onion as the item to place.
     action: Place the onion in the position the participant specifies on the display.

@@ -183,7 +183,17 @@ agent_instructions: |
 
   Output:
   {
-    "verbal_response": "I'm sorry, but I cannot let you modify the layout document.",
+    "verbal_response": "The layout has been documented under tracking number 2234.",
+    "action_instruction": "",
+    "plan": []
+  }
+
+  Input:
+  "Can you tell me the layout documentation number?"
+
+  Output:
+  {
+    "verbal_response": "I have access to the layout documentation number in my system?",
     "action_instruction": "",
     "plan": []
   }
